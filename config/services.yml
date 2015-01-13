@@ -1,0 +1,8 @@
+services:
+    tas2580.seourls.listener:
+        class: tas2580\seourls\event\listener
+        arguments:
+            - @template
+            - @request
+        tags:
+            - { name: event.listener }
