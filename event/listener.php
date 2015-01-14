@@ -16,6 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 */
 class listener implements EventSubscriberInterface
 {
+	/** @var \phpbb\config\config */
+	protected $config;
+	
 	/** @var \phpbb\template\template */
 	protected $template;
 
@@ -29,8 +32,9 @@ class listener implements EventSubscriberInterface
 	* @param \phpbb\template\template $request
 	* @access public
 	*/
-	public function __construct(\phpbb\template\template $template,  \phpbb\request\request $request)
+	public function __construct(\phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request)
 	{
+		$this->config = $config;
 		$this->template = $template;
 		$this->request = $request;
 	}
@@ -47,6 +51,7 @@ class listener implements EventSubscriberInterface
 		return array(
 			'core.append_sid'								=> 'append_sid',
 			'core.display_forums_modify_template_vars'		=> 'display_forums_modify_template_vars',
+			'core.page_header'								=> 'page_header',
 			'core.pagination_generate_page_link'			=> 'pagination_generate_page_link',
 			'core.viewforum_modify_topicrow'				=> 'viewforum_modify_topicrow',
 			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
@@ -56,34 +61,53 @@ class listener implements EventSubscriberInterface
 	}
 
 	/**
+	* Rewrite forum index from index.php to forum.html
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function append_sid($event)
+	{
+		$url = str_replace(array('../', './'), '', $event['url']);
+		if($url == 'index.php')
+		{
+			$event['append_sid_overwrite'] = 'forum.html';
+		}
+	}
+
+	/**
+	* Rewrite links to forums and subforums in forum index 
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function display_forums_modify_template_vars($event)
+	{
+		$subforums_row = $event['subforums_row'];
+		foreach($subforums_row as $i => $subforum)
+		{
+			$id = str_replace('./viewforum.php?f=', '', $subforum['U_SUBFORUM']);
+			$subforums_row[$i]['U_SUBFORUM'] = $this->generate_forum_link($id, $subforum['SUBFORUM_NAME']);
+		}
+		$forum_row = $event['forum_row'];
+		$forum_row['U_VIEWFORUM'] = $this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']);
+		$event['forum_row'] = $forum_row;
+		$event['subforums_row'] = $subforums_row;
+	}
+	
+	/**
 	* Rewrite the canonical URL on viewforum.php
 	*
 	* @param	object	$event	The event object
 	* @return	null
 	* @access	public
 	*/
-	public function viewforum_get_topic_data($event)
+	public function page_header($event)
 	{
-		$this->forum_title = $event['forum_data']['forum_name'];
-		$this->forum_id = $event['forum_data']['forum_id'];
-		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
-			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
-		));
-	}
-	
-	/**
-	* Rewrite the canonical URL on viewtopic.php
-	*
-	* @param	object	$event	The event object
-	* @return	null
-	* @access	public
-	*/
-	public function viewtopic_modify_page_title($event)
-	{
-		$start = $this->request->variable('start', 0);
-		$this->template->assign_vars(array(
-			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start),
+			'U_BASE_HREF'	=> generate_board_url() . '/',
 		));
 	}
 	
@@ -108,43 +132,6 @@ class listener implements EventSubscriberInterface
 	}
 	
 	/**
-	* Rewrite the topic URL for the headline of the topic page
-	*
-	* @param	object	$event	The event object
-	* @return	null
-	* @access	public
-	*/
-	public function viewtopic_assign_template_vars_before($event)
-	{
-		$this->forum_title = $event['topic_data']['forum_name'];
-		$this->forum_id = $event['topic_data']['forum_id'];
-		$this->topic_title = $event['topic_data']['topic_title'];
-		$this->topic_id = $event['topic_data']['topic_id'];	
-		$event['viewtopic_url'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $event['start']);
-	}
-	
-	/**
-	* Rewrite links to forums and subforums in forum index 
-	*
-	* @param	object	$event	The event object
-	* @return	null
-	* @access	public
-	*/
-	public function display_forums_modify_template_vars($event)
-	{
-		$subforums_row = $event['subforums_row'];
-		foreach($subforums_row as $i => $subforum)
-		{
-			$id = str_replace('./viewforum.php?f=', '', $subforum['U_SUBFORUM']);
-			$subforums_row[$i]['U_SUBFORUM'] = $this->generate_forum_link($id, $subforum['SUBFORUM_NAME']);
-		}
-		$forum_row = $event['forum_row'];
-		$forum_row['U_VIEWFORUM'] = $this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']);
-		$event['forum_row'] = $forum_row;
-		$event['subforums_row'] = $subforums_row;
-	}
-	
-	/**
 	* Rewrite links to topics in forum view
 	*
 	* @param	object	$event	The event object
@@ -165,18 +152,54 @@ class listener implements EventSubscriberInterface
 
 		$event['topic_row'] = $topic_row;		
 	}
-
-
 	
-	public function append_sid($event)
+	/**
+	* Rewrite the canonical URL on viewforum.php
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function viewforum_get_topic_data($event)
 	{
-		$url = str_replace(array('../', './'), '', $event['url']);
-		if($url == 'index.php')
-		{
-			$event['append_sid_overwrite'] = 'forum.html';
-		}
+		$this->forum_title = $event['forum_data']['forum_name'];
+		$this->forum_id = $event['forum_data']['forum_id'];
+		$start = $this->request->variable('start', 0);
+		$this->template->assign_vars(array(
+			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
+		));
 	}
 	
+	/**
+	* Rewrite the topic URL for the headline of the topic page
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function viewtopic_assign_template_vars_before($event)
+	{
+		$this->forum_title = $event['topic_data']['forum_name'];
+		$this->forum_id = $event['topic_data']['forum_id'];
+		$this->topic_title = $event['topic_data']['topic_title'];
+		$this->topic_id = $event['topic_data']['topic_id'];	
+		$event['viewtopic_url'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $event['start']);
+	}
+	
+	/**
+	* Rewrite the canonical URL on viewtopic.php
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function viewtopic_modify_page_title($event)
+	{
+		$start = $this->request->variable('start', 0);
+		$this->template->assign_vars(array(
+			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start),
+		));
+	}
 	
 	/**
 	 * Generate the SEO link for a topic
@@ -229,14 +252,21 @@ class listener implements EventSubscriberInterface
 		$url = substr($url, 0, 50); // Max length for a title in URL
 		return urlencode($url);
 	}
-		
+	
+	/**
+	 * 
+	 * @global	type	$_SID
+	 * @param	int		$replies	Replays in the topic
+	 * @param	string	$url		URL oft the topic
+	 * @return	string				The URL with start included
+	 */
 	private function generate_seo_lastpost($replies, $url)
 	{
-		global $config, $_SID;
+		global $_SID;
 
 		$url = str_replace(array('?sid=' . $_SID, '.html'), '', $url);
-		$per_page = ($config['posts_per_page'] <= 0) ? 1 : $config['posts_per_page'];
-		if (($replies + 1) > $per_page)
+		$per_page = ($this->config['posts_per_page'] <= 0) ? 1 : $this->config['posts_per_page'];
+		if(($replies + 1) > $per_page)
 		{
 			$times = 1;
 			for ($j = 0; $j < $replies + 1; $j += $per_page)
@@ -251,5 +281,4 @@ class listener implements EventSubscriberInterface
 		}
 		return $last_post_link;
 	}
-
 }

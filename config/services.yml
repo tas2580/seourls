@@ -2,6 +2,7 @@ services:
     tas2580.seourls.listener:
         class: tas2580\seourls\event\listener
         arguments:
+            - @config
             - @template
             - @request
         tags:
