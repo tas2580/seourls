@@ -4,7 +4,7 @@ This is an extension for the phpBB forums software. You need an instalation of p
 
 DESCRIPTION
 -------
-Changes the URLs of forums and topics too more SEO friendly URLs with the title of the forums and topics in it. This is
+Changes the URLs of forums and topics too more SEO friendly URLs with the title of the forums and topics in it. This 
 extension is held as simple as possible, it contains no ACP, you can just install it and use the SEO friendly URLs.
 
 /viewforum.php?f=1 becomes /forum-title-f1/
