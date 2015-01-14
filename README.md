@@ -8,6 +8,7 @@ Changes the URLs of forums and topics too more SEO friendly URLs with the title 
 extension is held as simple as possible, it contains no ACP, you can just install it and use the SEO friendly URLs.
 
 /viewforum.php?f=1 becomes /forum-title-f1/
+
 /viewtopic.php?f=1&t=2 becomes /forum-title-f1/topic-title-t2.html
 
 INSTALATION
