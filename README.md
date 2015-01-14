@@ -19,8 +19,8 @@ this extension in the list of extensions and click on Enable.
 
 SUPPORT
 -------
-You can get support for this extension on <a href="https://www.phpbb.com/community/viewtopic.php?f=456&t=2281326">phpbb.com</a>
-or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=232974">phpbb.de</a>. For more informations look at
+You can get support for this extension on <a href="https://www.phpbb.com/community/viewtopic.php?f=456&t=2288486">phpbb.com</a>
+or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=233380">phpbb.de</a>. For more informations look at
 <a href="https://tas2580.net/downloads/download-11.html">my Website</a>.
 
 LICENSE
