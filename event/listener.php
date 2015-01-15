@@ -1,7 +1,7 @@
 <?php
 /**
 *
-* @package phpBB Extension - tas2580 SEO URLs
+* @package phpBB Extension - tas2580 Social Media Buttons
 * @copyright (c) 2014 tas2580 (https://tas2580.net)
 * @license http://opensource.org/licenses/gpl-2.0.php GNU General Public License v2
 *
@@ -25,22 +25,29 @@ class listener implements EventSubscriberInterface
 	/* @var \phpbb\request\request */
 	private $request;
 	
-	/* @var \phpbb\user */
-	private $user;
+	/* @var \phpbb\path_helper */
+	protected $helper;
+	
+	/** @var string phpbb_root_path */
+	protected $phpbb_root_path;
 	
 	/**
 	* Constructor
 	*
-	* @param \phpbb\template\template $template
-	* @param \phpbb\template\template $request
+	* @param \phpbb\config\config			$config
+	* @param \phpbb\template\template		$template
+	* @param \phpbb\request\request			$request
+	* @param \phpbb\path_helper				$path_helper
+	* @param string                         $phpbb_root_path
 	* @access public
 	*/
-	public function __construct(\phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request, \phpbb\user $user)
+	public function __construct(\phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request, \phpbb\path_helper $path_helper, $phpbb_root_path)
 	{
 		$this->config = $config;
 		$this->template = $template;
 		$this->request = $request;
-		$this->user = $user;
+		$this->path_helper = $path_helper;
+		$this->phpbb_root_path = $phpbb_root_path;
 	}
 
 	/**
@@ -55,9 +62,7 @@ class listener implements EventSubscriberInterface
 		return array(
 			'core.append_sid'								=> 'append_sid',
 			'core.display_forums_modify_template_vars'		=> 'display_forums_modify_template_vars',
-			'core.page_header'								=> 'page_header',
 			'core.pagination_generate_page_link'			=> 'pagination_generate_page_link',
-			'core.modify_username_string'					=> 'modify_username_string',
 			'core.viewforum_modify_topicrow'				=> 'viewforum_modify_topicrow',
 			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
 			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
@@ -77,7 +82,7 @@ class listener implements EventSubscriberInterface
 		$url = str_replace(array('../', './'), '', $event['url']);
 		if($url == 'index.php')
 		{
-			$event['append_sid_overwrite'] = 'forum.html';
+			//$event['append_sid_overwrite'] = 'forum.html';
 		}
 	}
 
@@ -97,23 +102,14 @@ class listener implements EventSubscriberInterface
 			$subforums_row[$i]['U_SUBFORUM'] = $this->generate_forum_link($id, $subforum['SUBFORUM_NAME']);
 		}
 		$forum_row = $event['forum_row'];
+
+		// Update the image source in forums
+		$img = $this->path_helper->update_web_root_path($forum_row['FORUM_IMAGE_SRC']);
+		$forum_row['FORUM_IMAGE'] = preg_replace('#img src=\"(.*)\" alt#', 'img src="' . $img . '" alt', $forum_row['FORUM_IMAGE']);
+		
 		$forum_row['U_VIEWFORUM'] = $this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']);
 		$event['forum_row'] = $forum_row;
 		$event['subforums_row'] = $subforums_row;
-	}
-	
-	/**
-	* Rewrite the canonical URL on viewforum.php
-	*
-	* @param	object	$event	The event object
-	* @return	null
-	* @access	public
-	*/
-	public function page_header($event)
-	{
-		$this->template->assign_vars(array(
-			'U_BASE_HREF'	=> generate_board_url() . '/',
-		));
 	}
 	
 	/**
@@ -135,33 +131,6 @@ class listener implements EventSubscriberInterface
 			$event['generate_page_link_override'] = $this->generate_forum_link($this->forum_id, $this->forum_title, $start);
 		}
 	}
-	
-	/**
-	* Remove links to profiles for not logged in users
-	*
-	* @param	object	$event	The event object
-	* @return	null
-	* @access	public
-	*/
-	public function modify_username_string($event)
-	{
-		// if user is logged in do nothing
-		if($this->user->data['user_id'] != ANONYMOUS)
-		{
-			return;
-		}
-		
-		// if user is not logged in output no links to profiles
-		if($event['username_colour'])
-		{
-			$event['username_string'] = '<span style="color: ' . $event['username_colour'] . ';" class="username-coloured">' . $event['username'] . '</span>';
-		}
-		else
-		{
-			$event['username_string'] = '<span class="username">' . $event['username'] . '</span>';
-		}
-	}
-	
 	
 	/**
 	* Rewrite links to topics in forum view
@@ -186,7 +155,7 @@ class listener implements EventSubscriberInterface
 	}
 	
 	/**
-	* Rewrite the canonical and forum URL on viewforum.php
+	* Rewrite the canonical URL on viewforum.php
 	*
 	* @param	object	$event	The event object
 	* @return	null
@@ -198,7 +167,6 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['forum_data']['forum_id'];
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
-			'U_VIEW_FORUM'	=> $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
 			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
 		));
 	}
@@ -216,11 +184,11 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['topic_data']['forum_id'];
 		$this->topic_title = $event['topic_data']['topic_title'];
 		$this->topic_id = $event['topic_data']['topic_id'];	
-		$event['viewtopic_url'] = $this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title, $event['start']);
+		$event['viewtopic_url'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $event['start']);
 	}
 	
 	/**
-	* Rewrite the canonical and forum URL on viewtopic.php
+	* Rewrite the canonical URL on viewtopic.php
 	*
 	* @param	object	$event	The event object
 	* @return	null
@@ -231,7 +199,6 @@ class listener implements EventSubscriberInterface
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
 			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start),
-			'U_VIEW_FORUM'	=> $this->generate_forum_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name']),
 		));
 	}
 	
@@ -248,7 +215,7 @@ class listener implements EventSubscriberInterface
 	 */
 	private function generate_topic_link($forum_id, $forum_name, $topic_id, $topic_title, $start = 0)
 	{
-		return $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
+		return $this->path_helper->update_web_root_path($this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html');
 	}
 	
 	/**
@@ -262,7 +229,7 @@ class listener implements EventSubscriberInterface
 	 */
 	private function generate_forum_link($forum_id, $forum_name, $start = 0)
 	{
-		return $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html': '');
+		return $this->path_helper->update_web_root_path($this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html': ''));
 	}
 	
 	/**
@@ -276,9 +243,9 @@ class listener implements EventSubscriberInterface
 		$url = strtolower(utf8_normalize_nfc(censor_text($title)));
 
 		// Let's replace
-		$search =  array(' ', 'í', 'ý', 'ß', 'ö', 'ô', 'ó', 'ò', 'ä', 'â', 'à', 'á', 'é', 'è', 'ü', 'ú', 'ù', 'ñ', 'ß', '²', '³', '@', '€', '$');
-		$replace = array('-', 'i', 'y', 's', 'oe', 'o', 'o', 'o', 'ae', 'a', 'a', 'a', 'e', 'e', 'ue', 'u', 'u', 'n', 'ss', '2', '3', 'at', 'eur', 'usd');
-		$url = str_replace($search, $replace, $url);
+		$url_search =  array(' ', 'í', 'ý', 'ß', 'ö', 'ô', 'ó', 'ò', 'ä', 'â', 'à', 'á', 'é', 'è', 'ü', 'ú', 'ù', 'ñ', 'ß', '²', '³', '@', '€', '$');
+		$url_replace = array('-', 'i', 'y', 's', 'oe', 'o', 'o', 'o', 'ae', 'a', 'a', 'a', 'e', 'e', 'ue', 'u', 'u', 'n', 'ss', '2', '3', 'at', 'eur', 'usd');
+		$url = str_replace($url_search, $url_replace, $url);
 		$url_search =  array('&amp;', '&quot;', '&', '"', "'", '¸', '`',  '(', ')', '[', ']', '<', '>', '{', '}', '.', ':', ',', ';', '!', '?', '+', '*', '/', '=', 'µ', '#', '~', '"', '§', '%', '|', '°', '^', '„', '“');
 		$url = str_replace($url_search, '-', $url);
 		$url = str_replace(array('----', '---', '--'), '-', $url);
@@ -297,6 +264,7 @@ class listener implements EventSubscriberInterface
 	private function generate_seo_lastpost($replies, $url)
 	{
 		global $_SID;
+
 		$url = str_replace(array('?sid=' . $_SID, '.html'), '', $url);
 		$per_page = ($this->config['posts_per_page'] <= 0) ? 1 : $this->config['posts_per_page'];
 		if(($replies + 1) > $per_page)

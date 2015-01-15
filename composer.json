@@ -3,7 +3,7 @@
 	"type": "phpbb-extension",
 	"description": "Rewrites URLs to SEO friendy URLs. Forums will become 'forum-title-f123/' topics will become 'forum-title-f123/topic-title-t123.html'",
 	"homepage": "https://tas2580.net/downloads/download-11.html",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"keywords": ["phpbb", "extension", "social", "topics"],
 	"license": "GPL-2.0",
 	"authors": [

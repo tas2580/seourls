@@ -5,6 +5,7 @@ services:
             - @config
             - @template
             - @request
-            - @user
+            - @path_helper
+            - %core.root_path%
         tags:
             - { name: event.listener }
