@@ -61,9 +61,11 @@ class listener implements EventSubscriberInterface
 	{
 		return array(
 			'core.append_sid'								=> 'append_sid',
+			'core.display_forums_modify_sql'				=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'		=> 'display_forums_modify_template_vars',
 			'core.pagination_generate_page_link'			=> 'pagination_generate_page_link',
 			'core.viewforum_modify_topicrow'				=> 'viewforum_modify_topicrow',
+			'core.search_modify_tpl_ary'					=> 'search_modify_tpl_ary',
 			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
 			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
 			'core.viewtopic_modify_page_title'				=> 'viewtopic_modify_page_title',
@@ -79,13 +81,30 @@ class listener implements EventSubscriberInterface
 	*/
 	public function append_sid($event)
 	{
-		$url = str_replace(array('../', './'), '', $event['url']);
-		if($url == 'index.php')
+		if($event['url'] == $this->path_helper->update_web_root_path($this->phpbb_root_path . 'index.php'))
 		{
-			//$event['append_sid_overwrite'] = 'forum.html';
+			$event['append_sid_overwrite'] = $this->path_helper->update_web_root_path($this->phpbb_root_path . 'forum.html');
 		}
 	}
 
+	/**
+	* Get informations for the last post
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function display_forums_modify_sql($event)
+	{
+		$sql_array = $event['sql_ary'];
+		$sql_array['LEFT_JOIN'][] = array(
+			'FROM'   => array(TOPICS_TABLE => 't'),
+			'ON'   => "f.forum_last_post_id = t.topic_last_post_id"
+		);
+		$sql_array['SELECT'] .= ', t.topic_title, t.topic_id, t.topic_posts_approved, t.topic_posts_unapproved, t.topic_posts_softdeleted';
+		$event['sql_ary'] = $sql_array;
+	}
+	
 	/**
 	* Rewrite links to forums and subforums in forum index 
 	*
@@ -107,6 +126,12 @@ class listener implements EventSubscriberInterface
 		$img = $this->path_helper->update_web_root_path($forum_row['FORUM_IMAGE_SRC']);
 		$forum_row['FORUM_IMAGE'] = preg_replace('#img src=\"(.*)\" alt#', 'img src="' . $img . '" alt', $forum_row['FORUM_IMAGE']);
 		
+		global $phpbb_container;
+		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
+		$replies = $phpbb_content_visibility->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		$url = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		
+		$forum_row['U_LAST_POST'] = $this->generate_seo_lastpost($replies, $url) . '#p' . $event['row']['forum_last_post_id'];
 		$forum_row['U_VIEWFORUM'] = $this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']);
 		$event['forum_row'] = $forum_row;
 		$event['subforums_row'] = $subforums_row;
@@ -130,6 +155,28 @@ class listener implements EventSubscriberInterface
 		{
 			$event['generate_page_link_override'] = $this->generate_forum_link($this->forum_id, $this->forum_title, $start);
 		}
+	}
+	
+	/**
+	* Rewrite links in the search result
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function search_modify_tpl_ary($event)
+	{
+		global $phpbb_container;
+		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
+		$replies = $phpbb_content_visibility->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		$url = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+
+		$tpl_ary = $event['tpl_ary'];
+		$tpl_ary['U_LAST_POST'] = $this->generate_seo_lastpost($replies, $url) . '#p' . $event['row']['topic_last_post_id'];
+		$tpl_ary['U_VIEW_TOPIC'] = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		$tpl_ary['U_VIEW_FORUM'] = $this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']);
+		
+		$event['tpl_ary'] = $tpl_ary;
 	}
 	
 	/**
@@ -167,6 +214,7 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['forum_data']['forum_id'];
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
+			'U_VIEW_FORUM'	=> $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
 			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
 		));
 	}
@@ -240,7 +288,7 @@ class listener implements EventSubscriberInterface
 	 */
 	private function title_to_url($title)
 	{
-		$url = strtolower(utf8_normalize_nfc(censor_text($title)));
+		$url = strtolower(censor_text(utf8_normalize_nfc(strip_tags($title))));
 
 		// Let's replace
 		$url_search =  array(' ', 'í', 'ý', 'ß', 'ö', 'ô', 'ó', 'ò', 'ä', 'â', 'à', 'á', 'é', 'è', 'ü', 'ú', 'ù', 'ñ', 'ß', '²', '³', '@', '€', '$');
