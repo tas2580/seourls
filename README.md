@@ -14,8 +14,13 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 INSTALATION
 ----------
 To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>.
-After that go to the Admin panel of your forum and navigate in to Customise -> Extension Management -> Extensions. Search
-this extension in the list of extensions and click on Enable.
+After that go to the Admin panel of your forum and navigate in to Customise -> Extension Management -> Extensions. Search this extension in the list of extensions and click on Enable.
+
+Also you need to add the rewrite rules from the htaccess.txt file included in this extension to your .htaccess file.
+Open your .htacces and find <code>RewriteEngine on</code> right after this add the complete content of the htaccess.txt
+
+If your forum is under domain.tld/forum you also need to change <code>RewriteBase /</code> to <code>RewriteBase /forum</code>
+
 
 SUPPORT
 -------
