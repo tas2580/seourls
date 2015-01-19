@@ -11,6 +11,8 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 
 /viewtopic.php?f=1&t=2 becomes /forum-title-f1/topic-title-t2.html
 
+You can access the XML sitemap under {YOUR_BOARD_URL}/seositemap.xml
+
 INSTALATION
 ----------
 To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>.
