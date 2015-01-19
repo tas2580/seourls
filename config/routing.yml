@@ -1,0 +1,6 @@
+tas2580_seourls_sitemapindex:
+    pattern: /seositemap.xml
+    defaults: { _controller: tas2580.seourls.sitemap:index }
+tas2580_seourls_sitemap:
+    pattern: /seositemap-{id}.xml
+    defaults: { _controller: tas2580.seourls.sitemap:sitemap }

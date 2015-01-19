@@ -16,6 +16,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 */
 class listener implements EventSubscriberInterface
 {
+	/** @var \phpbb\auth\auth */
+	protected $auth;
+	
 	/** @var \phpbb\config\config */
 	protected $config;
 	
@@ -23,7 +26,7 @@ class listener implements EventSubscriberInterface
 	protected $template;
 
 	/* @var \phpbb\request\request */
-	private $request;
+	protected $request;
 	
 	/* @var \phpbb\path_helper */
 	protected $helper;
@@ -34,15 +37,17 @@ class listener implements EventSubscriberInterface
 	/**
 	* Constructor
 	*
-	* @param \phpbb\config\config			$config
-	* @param \phpbb\template\template		$template
-	* @param \phpbb\request\request			$request
-	* @param \phpbb\path_helper				$path_helper
-	* @param string                         $phpbb_root_path
+	* @param \phpbb\auth\auth				auth				Authentication object
+	* @param \phpbb\config\config			$config				Config Object
+	* @param \phpbb\template\template		$template			Template object
+	* @param \phpbb\request\request			$request			Request object
+	* @param \phpbb\path_helper				$path_helper		Controller helper object
+	* @param string                         $phpbb_root_path	phpbb_root_path
 	* @access public
 	*/
-	public function __construct(\phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request, \phpbb\path_helper $path_helper, $phpbb_root_path)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request, \phpbb\path_helper $path_helper, $phpbb_root_path)
 	{
+		$this->auth = $auth;
 		$this->config = $config;
 		$this->template = $template;
 		$this->request = $request;
@@ -106,7 +111,8 @@ class listener implements EventSubscriberInterface
 	}
 	
 	/**
-	* Rewrite links to forums and subforums in forum index 
+	* Rewrite links to forums and subforums in forum index
+	* also correct the path of the forum images if we are in a forum
 	*
 	* @param	object	$event	The event object
 	* @return	null
@@ -114,27 +120,27 @@ class listener implements EventSubscriberInterface
 	*/
 	public function display_forums_modify_template_vars($event)
 	{
+		// Rewrite URLs of sub forums
 		$subforums_row = $event['subforums_row'];
 		foreach($subforums_row as $i => $subforum)
 		{
 			$id = str_replace('./viewforum.php?f=', '', $subforum['U_SUBFORUM']);
 			$subforums_row[$i]['U_SUBFORUM'] = $this->generate_forum_link($id, $subforum['SUBFORUM_NAME']);
 		}
+		$event['subforums_row'] = $subforums_row;
+		
 		$forum_row = $event['forum_row'];
 
 		// Update the image source in forums
 		$img = $this->path_helper->update_web_root_path($forum_row['FORUM_IMAGE_SRC']);
 		$forum_row['FORUM_IMAGE'] = preg_replace('#img src=\"(.*)\" alt#', 'img src="' . $img . '" alt', $forum_row['FORUM_IMAGE']);
 		
-		global $phpbb_container;
-		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
-		$replies = $phpbb_content_visibility->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		// Rewrite links to topics, posts and forums
+		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
 		$url = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
-		
 		$forum_row['U_LAST_POST'] = $this->generate_seo_lastpost($replies, $url) . '#p' . $event['row']['forum_last_post_id'];
 		$forum_row['U_VIEWFORUM'] = $this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']);
 		$event['forum_row'] = $forum_row;
-		$event['subforums_row'] = $subforums_row;
 	}
 	
 	/**
@@ -166,9 +172,7 @@ class listener implements EventSubscriberInterface
 	*/
 	public function search_modify_tpl_ary($event)
 	{
-		global $phpbb_container;
-		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
-		$replies = $phpbb_content_visibility->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
 		$url = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
 
 		$tpl_ary = $event['tpl_ary'];
@@ -215,7 +219,7 @@ class listener implements EventSubscriberInterface
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
 			'U_VIEW_FORUM'	=> $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
-			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
+			'U_CANONICAL'	=> $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start, true),
 		));
 	}
 	
@@ -246,37 +250,47 @@ class listener implements EventSubscriberInterface
 	{
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
-			'U_CANONICAL'	=> generate_board_url() . '/' . $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start),
+			'U_CANONICAL'	=> $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start, true),
 		));
 	}
 	
 	/**
 	 * Generate the SEO link for a topic
 	 * 
-	 * @param int		$forum_id		The ID of the forum
-	 * @param string	$forum_name		The title of the forum
-	 * @param int		$topic_id		The ID if the topic
-	 * @param string	$topic_title	The title of the topic
-	 * @param int		$start			Optional start parameter
-	 * @return string	The SEO URL
+	 * @param	int		$forum_id		The ID of the forum
+	 * @param	string	$forum_name		The title of the forum
+	 * @param	int		$topic_id		The ID if the topic
+	 * @param	string	$topic_title	The title of the topic
+	 * @param	int		$start			Optional start parameter
+	 * @param	bool	$full			Return the full URL
+	 * @return	string	The SEO URL
 	 * @access private
 	 */
-	private function generate_topic_link($forum_id, $forum_name, $topic_id, $topic_title, $start = 0)
+	private function generate_topic_link($forum_id, $forum_name, $topic_id, $topic_title, $start = 0, $full = false)
 	{
+		if($full)
+		{
+			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
+		}
 		return $this->path_helper->update_web_root_path($this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html');
 	}
 	
 	/**
 	 * Generate the SEO link for a forum
 	 * 
-	 * @param int		$forum_id		The ID of the forum
-	 * @param string	$forum_name		The title of the forum
-	 * @param int		$start			Optional start parameter
-	 * @return type
+	 * @param	int		$forum_id		The ID of the forum
+	 * @param	string	$forum_name		The title of the forum
+	 * @param	int		$start			Optional start parameter
+	 * @param	bool	$full			Return the full URL
+	 * @return	string	The SEO URL
 	 * @access private
 	 */
-	private function generate_forum_link($forum_id, $forum_name, $start = 0)
+	private function generate_forum_link($forum_id, $forum_name, $start = 0, $full = false)
 	{
+		if($full)
+		{
+			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html': '');
+		}
 		return $this->path_helper->update_web_root_path($this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html': ''));
 	}
 	
@@ -329,5 +343,23 @@ class listener implements EventSubscriberInterface
 			$last_post_link = $url . '.html';
 		}
 		return $last_post_link;
+	}
+	
+	/**
+	* Get the topics post count or the forums post/topic count based on permissions
+	*
+	* @param $mode            string    One of topic_posts, forum_posts or forum_topics
+	* @param $data            array    Array with the topic/forum data to calculate from
+	* @param $forum_id        int        The forum id is used for permission checks
+	* @return int    Number of posts/topics the user can see in the topic/forum
+	*/
+	private function get_count($mode, $data, $forum_id)
+	{
+		if (!$this->auth->acl_get('m_approve', $forum_id))
+		{
+			return (int) $data[$mode . '_approved'];
+		}
+
+		return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
 	}
 }
