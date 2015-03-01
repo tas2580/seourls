@@ -28,6 +28,9 @@ class listener implements EventSubscriberInterface
 	/* @var \phpbb\request\request */
 	protected $request;
 	
+	/* @var \phpbb\user */
+	protected $user;
+	
 	/* @var \phpbb\path_helper */
 	protected $helper;
 	
@@ -41,16 +44,18 @@ class listener implements EventSubscriberInterface
 	* @param \phpbb\config\config			$config				Config Object
 	* @param \phpbb\template\template		$template			Template object
 	* @param \phpbb\request\request			$request			Request object
+	* @param \phpbb\user					$user				User Object
 	* @param \phpbb\path_helper				$path_helper		Controller helper object
 	* @param string                         $phpbb_root_path	phpbb_root_path
 	* @access public
 	*/
-	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request, \phpbb\path_helper $path_helper, $phpbb_root_path)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\template\template $template,  \phpbb\request\request $request, \phpbb\user $user, \phpbb\path_helper $path_helper, $phpbb_root_path)
 	{
 		$this->auth = $auth;
 		$this->config = $config;
 		$this->template = $template;
 		$this->request = $request;
+		$this->user = $user;
 		$this->path_helper = $path_helper;
 		$this->phpbb_root_path = $phpbb_root_path;
 	}
@@ -69,11 +74,14 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_sql'				=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'		=> 'display_forums_modify_template_vars',
 			'core.pagination_generate_page_link'			=> 'pagination_generate_page_link',
+			'core.modify_username_string'					=> 'modify_username_string',
 			'core.viewforum_modify_topicrow'				=> 'viewforum_modify_topicrow',
 			'core.search_modify_tpl_ary'					=> 'search_modify_tpl_ary',
 			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
 			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
 			'core.viewtopic_modify_page_title'				=> 'viewtopic_modify_page_title',
+			'vse.similartopics.modify_topicrow'				=> 'similartopics_modify_topicrow',
+			'rmcgirr83.topfive.modify_tpl_ary'				=> 'topfive_modify_tpl_ary',
 		);
 	}
 
@@ -88,7 +96,34 @@ class listener implements EventSubscriberInterface
 	{
 		if($event['url'] == $this->path_helper->update_web_root_path($this->phpbb_root_path . 'index.php'))
 		{
-			$event['append_sid_overwrite'] = $this->path_helper->update_web_root_path($this->phpbb_root_path . 'forum.html');
+			//$event['append_sid_overwrite'] = $this->path_helper->update_web_root_path($this->phpbb_root_path . 'forum.html');
+			$event['append_sid_overwrite'] = $this->path_helper->update_web_root_path($this->phpbb_root_path);
+		}
+	}
+
+		/**
+	* Remove links to profiles for not logged in users
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function modify_username_string($event)
+	{
+		// if user is logged in do nothing
+		if($this->user->data['user_id'] != ANONYMOUS)
+		{
+			return;
+		}
+		
+		// if user is not logged in output no links to profiles
+		if($event['username_colour'])
+		{
+			$event['username_string'] = '<span style="color: ' . $event['username_colour'] . ';" class="username-coloured">' . $event['username'] . '</span>';
+		}
+		else
+		{
+			$event['username_string'] = '<span class="username">' . $event['username'] . '</span>';
 		}
 	}
 
@@ -134,6 +169,9 @@ class listener implements EventSubscriberInterface
 		// Update the image source in forums
 		$img = $this->path_helper->update_web_root_path($forum_row['FORUM_IMAGE_SRC']);
 		$forum_row['FORUM_IMAGE'] = preg_replace('#img src=\"(.*)\" alt#', 'img src="' . $img . '" alt', $forum_row['FORUM_IMAGE']);
+		
+		
+		//print_r($event['row']);
 		
 		// Rewrite links to topics, posts and forums
 		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
@@ -253,6 +291,40 @@ class listener implements EventSubscriberInterface
 			'U_CANONICAL'	=> $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start, true),
 		));
 	}
+	
+	/**
+	* Rewrite URLs in Similar Topics Extension
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function similartopics_modify_topicrow($event)
+	{
+		$topic_row = $event['topic_row'];
+		$topic_row['U_VIEW_TOPIC'] = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		$topic_row['U_VIEW_FORUM'] =  $this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']);
+		$topic_row['U_LAST_POST'] = $this->generate_seo_lastpost($topic_row['TOPIC_REPLIES'], $topic_row['U_VIEW_TOPIC']) . '#p' . $event['row']['topic_last_post_id'];
+		$event['topic_row'] = $topic_row;
+	}
+	
+	/**
+	* Rewrite URLs in Top 5 Extension
+	*
+	* @param	object	$event	The event object
+	* @return	null
+	* @access	public
+	*/
+	public function topfive_modify_tpl_ary($event)
+	{
+		$tpl_ary = $event['tpl_ary'];
+		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		$u_topic = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		$tpl_ary['U_TOPIC'] = $this->generate_seo_lastpost($replies, $u_topic) . '#p' . $event['row']['topic_last_post_id'];
+		$event['tpl_ary'] = $tpl_ary;
+	}
+	
+	
 	
 	/**
 	 * Generate the SEO link for a topic
