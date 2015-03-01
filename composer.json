@@ -3,7 +3,7 @@
 	"type": "phpbb-extension",
 	"description": "Rewrites URLs to SEO friendy URLs and provides a XML Sitemap",
 	"homepage": "https://tas2580.net/downloads/download-11.html",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"keywords": ["phpbb", "extension", "social", "topics"],
 	"license": "GPL-2.0",
 	"authors": [
