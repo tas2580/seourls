@@ -1,0 +1,58 @@
+sudo: required
+
+language: php
+
+matrix:
+  include:
+    - php: 5.3.3
+      env: DB=mysqli
+    - php: 5.3
+      env: DB=mysqli # MyISAM
+    - php: 5.4
+      env: DB=mysqli
+    - php: 5.4
+      env: DB=mysql
+    - php: 5.4
+      env: DB=mariadb
+    - php: 5.4
+      env: DB=postgres
+    - php: 5.4
+      env: DB=sqlite3
+    - php: 5.5
+      env: DB=mysqli
+    - php: 5.6
+      env: DB=mysqli
+    - php: hhvm
+      env: DB=mysqli
+  allow_failures:
+    - php: hhvm
+  fast_finish: true
+
+env:
+  global:
+    - EXTNAME="tas2580/seourls"  # CHANGE name of the extension HERE
+    - SNIFF="1"            # Should we run code sniffer on your code?
+    - IMAGE_ICC="1"        # Should we run icc profile sniffer on your images?
+    - EPV="1"              # Should we run EPV (Extension Pre Validator) on your code?
+    - PHPBB_BRANCH="3.1.x"
+
+branches:
+  only:
+    - master
+    - /^(3\.[1-9]|[4-9]\.\d)\.x$/
+
+install:
+  - travis_wait composer install --dev --no-interaction --prefer-source
+  - travis_wait travis/prepare-phpbb.sh $EXTNAME $PHPBB_BRANCH
+  - cd ../../phpBB3
+  - travis_wait travis/prepare-extension.sh $EXTNAME $PHPBB_BRANCH
+  - travis_wait travis/setup-phpbb.sh $DB $TRAVIS_PHP_VERSION
+
+before_script:
+  - travis/setup-database.sh $DB $TRAVIS_PHP_VERSION
+
+script:
+  - sh -c "if [ '$SNIFF' != '0' ]; then travis/ext-sniff.sh $DB $TRAVIS_PHP_VERSION $EXTNAME; fi"
+  - sh -c "if [ '$IMAGE_ICC' != '0' ]; then travis/check-image-icc-profiles.sh $DB $TRAVIS_PHP_VERSION; fi"
+  - phpBB/vendor/bin/phpunit --configuration phpBB/ext/$EXTNAME/travis/phpunit-$DB-travis.xml --bootstrap ./tests/bootstrap.php
+  - sh -c "if [ '$EPV' != '0' ] && [ '$TRAVIS_PHP_VERSION' = '5.3.3' ] && [ '$DB' = 'mysqli' ]; then phpBB/ext/$EXTNAME/vendor/bin/EPV.php run --dir='phpBB/ext/$EXTNAME/'; fi"
