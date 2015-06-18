@@ -18,6 +18,6 @@ class ext_test extends \phpbb_functional_test_case
 	}
 	public function test_page()
 	{
-		$crawler = self::request('GET', 'forum-f1/topic-t1.html');
+		$crawler = self::request('GET', 'index.php');
 	}
 }
