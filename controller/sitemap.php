@@ -56,7 +56,7 @@ class sitemap
 		$result = $this->db->sql_query($sql);
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			if($row['topic_status'] <> ITEM_MOVED)
+			if ($row['topic_status'] <> ITEM_MOVED)
 			{
 				$this->template->assign_block_vars('urlset', array(
 					'URL'		=> $forum_url .  $this->title_to_url($row['topic_title']) . '-t' . $row['topic_id'] . '.html',
