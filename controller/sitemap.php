@@ -8,6 +8,7 @@
 */
 
 namespace tas2580\seourls\controller;
+
 class sitemap
 {
 	/* @var \phpbb\auth\auth */
@@ -18,7 +19,7 @@ class sitemap
 	protected $helper;
 	/* @var \phpbb\template\template */
 	protected $template;
-	
+
 	/**
 	* Constructor
 	*
@@ -31,7 +32,7 @@ class sitemap
 		$this->auth = $auth;
 		$this->db = $db;
 		$this->helper = $helper;
-		$this->template = $template;		
+		$this->template = $template;
 	}
 
 	public function sitemap($id)
@@ -42,35 +43,37 @@ class sitemap
 			WHERE forum_id = ' . (int) $id;
 		$result = $this->db->sql_query($sql);
 		$row = $this->db->sql_fetchrow($result);
-		
+
 		$forum_url = $board_url . '/' . $this->title_to_url($row['forum_name']) . '-f' . $id . '/';
-		
+
 		$this->template->assign_block_vars('urlset', array(
 			'URL'		=> $forum_url,
 			'TIME'		=> gmdate('Y-m-d\TH:i:s+00:00', (int) $row['forum_last_post_time']),
 		));
-		$sql = 'SELECT topic_id, topic_title, topic_last_post_time
+		$sql = 'SELECT topic_id, topic_title, topic_last_post_time, topic_status
 			FROM ' . TOPICS_TABLE . '
 			WHERE forum_id = ' . (int) $id;
 		$result = $this->db->sql_query($sql);
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			$this->template->assign_block_vars('urlset', array(
-				'URL'		=> $forum_url .  $this->title_to_url($row['topic_title']) . '-t' . $row['topic_id'] . '.html',
-				'TIME'		=> gmdate('Y-m-d\TH:i:s+00:00', (int) $row['topic_last_post_time']),
-			));
-			
+			if($row['topic_status'] <> ITEM_MOVED)
+			{
+				$this->template->assign_block_vars('urlset', array(
+					'URL'		=> $forum_url .  $this->title_to_url($row['topic_title']) . '-t' . $row['topic_id'] . '.html',
+					'TIME'		=> gmdate('Y-m-d\TH:i:s+00:00', (int) $row['topic_last_post_time']),
+				));
+			}
 		}
-		
+
 		return $this->helper->render('sitemap.html');
 	}
-	
-	
-	
+
+
+
 	public function index()
 	{
 		header('Content-Type: application/xml');
-		
+
 		$board_url = generate_board_url();
 		$sql = 'SELECT forum_id, forum_name, forum_last_post_time
 			FROM ' . FORUMS_TABLE . '
@@ -79,7 +82,7 @@ class sitemap
 		$result = $this->db->sql_query($sql);
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			if($this->auth->acl_get('f_list', $row['forum_id']))
+			if ($this->auth->acl_get('f_list', $row['forum_id']))
 			{
 				$this->template->assign_block_vars('forumlist', array(
 					'URL'		=> $board_url . '/seositemap-' . $row['forum_id'] . '.xml',
@@ -87,14 +90,14 @@ class sitemap
 				));
 			}
 		}
-		
+
 		return $this->helper->render('sitemap_index.html');
 	}
-	
+
 	/**
 	 * Replace letters to use title in URL
-	 * 
-	 * @param	string	$title	The title to use in the URL	
+	 *
+	 * @param	string	$title	The title to use in the URL
 	 * @return	string	Title to use in URLs
 	 */
 	private function title_to_url($title)

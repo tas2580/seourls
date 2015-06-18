@@ -195,7 +195,7 @@ class listener implements EventSubscriberInterface
 		{
 			$event['generate_page_link_override'] = $this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title, $start);
 		}
-		elseif (!empty($this->forum_title))
+		else if (!empty($this->forum_title))
 		{
 			$event['generate_page_link_override'] = $this->generate_forum_link($this->forum_id, $this->forum_title, $start);
 		}
@@ -318,11 +318,8 @@ class listener implements EventSubscriberInterface
 	public function topfive_sql_pull_topics_data($event)
 	{
 		$sql_array = $event['sql_array'];
-
 		$sql_array['SELECT'] = array_merge($sql_array, array('SELECT' => 'f.forum_name'));
 		$sql_array['LEFT_JOIN'] = array_merge($sql_array['LEFT_JOIN'], array('FROM' => array(FORUMS_TABLE => 'f'), 'ON' => 'f.forum_id = t.forum_id'));
-
-
 		//	$event['sql_array'] = $sql_array;
 	}
 

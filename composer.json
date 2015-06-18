@@ -23,7 +23,7 @@
 	"extra": {
 		"display-name": "tas2580 SEO URLs",
 		"soft-require": {
-			"phpbb/phpbb": ">=3.1.0-RC2,<3.2.*@dev"
+			"phpbb/phpbb": ">=3.1.4-RC1,<3.2.*@dev"
 		}
 	}
 }
