@@ -33,3 +33,5 @@ or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=23
 LICENSE
 -------
 <a href="http://opensource.org/licenses/gpl-2.0.php">GNU General Public License v2</a>
+
+[![Build Status](https://travis-ci.org/tas2580/phpBB-3.1-SEO-URLs.svg?branch=master)](https://travis-ci.org/tas2580/phpBB-3.1-SEO-URLs)
