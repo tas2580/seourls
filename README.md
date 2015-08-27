@@ -13,7 +13,7 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 
 You can access the XML sitemap under {YOUR_BOARD_URL}/seositemap.xml
 
-INSTALATION
+INSTALLATION
 ----------
 To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>.
 After that go to the Admin panel of your forum and navigate in to Customise -> Extension Management -> Extensions. Search this extension in the list of extensions and click on Enable.
