@@ -76,6 +76,15 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
 			'core.pagination_generate_page_link'		=> 'pagination_generate_page_link',
+
+
+
+			'core.display_forums_modify_forum_rows'		=> 'display_forums_modify_forum_rows',
+
+
+			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
+
+
 //			'core.modify_username_string'				=> 'modify_username_string',
 			'core.viewforum_modify_topicrow'			=> 'viewforum_modify_topicrow',
 			'core.search_modify_tpl_ary'				=> 'search_modify_tpl_ary',
@@ -131,7 +140,7 @@ class listener implements EventSubscriberInterface
 	}
 
 	/**
-	 * Get informations for the last post
+	 * Get informations for the last post from Database
 	 *
 	 * @param	object	$event	The event object
 	 * @return	null
@@ -147,6 +156,23 @@ class listener implements EventSubscriberInterface
 		$sql_array['SELECT'] .= ', t.topic_title, t.topic_id, t.topic_posts_approved, t.topic_posts_unapproved, t.topic_posts_softdeleted';
 		$event['sql_ary'] = $sql_array;
 	}
+
+	/**
+	 * Store informations for the last post in forum_rows array
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function display_forums_modify_forum_rows($event)
+	{
+		$forum_rows = $event['forum_rows'];
+		$forum_rows[$event['parent_id']]['forum_name_last_post'] =$event['row']['forum_name'];
+		$forum_rows[$event['parent_id']]['topic_id_last_post'] =$event['row']['topic_id'];
+		$forum_rows[$event['parent_id']]['topic_title_last_post'] =$event['row']['topic_title'];
+		$event['forum_rows'] = $forum_rows;
+	}
+
 
 	/**
 	 * Rewrite links to forums and subforums in forum index
@@ -175,7 +201,7 @@ class listener implements EventSubscriberInterface
 
 		// Rewrite links to topics, posts and forums
 		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
-		$url = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		$url = $this->generate_topic_link($event['row']['forum_id_last_post'], $event['row']['forum_name_last_post'], $event['row']['topic_id_last_post'], $event['row']['topic_title_last_post']);
 		$forum_row['U_LAST_POST'] = $this->generate_seo_lastpost($replies, $url) . '#p' . $event['row']['forum_last_post_id'];
 		$forum_row['U_VIEWFORUM'] = $this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']);
 		$event['forum_row'] = $forum_row;
