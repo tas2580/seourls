@@ -76,7 +76,7 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
 			'core.pagination_generate_page_link'		=> 'pagination_generate_page_link',
-		//	'core.modify_username_string'				=> 'modify_username_string',
+//			'core.modify_username_string'				=> 'modify_username_string',
 			'core.viewforum_modify_topicrow'			=> 'viewforum_modify_topicrow',
 			'core.search_modify_tpl_ary'				=> 'search_modify_tpl_ary',
 			'core.viewforum_get_topic_data'			=> 'viewforum_get_topic_data',
@@ -301,6 +301,11 @@ class listener implements EventSubscriberInterface
 	 */
 	public function similartopics_modify_topicrow($event)
 	{
+		$this->forum_title = $event['row']['forum_name'];
+		$this->forum_id = $event['row']['forum_id'];
+		$this->topic_title = $event['row']['topic_title'];
+		$this->topic_id = $event['row']['topic_id'];
+
 		$topic_row = $event['topic_row'];
 		$topic_row['U_VIEW_TOPIC'] = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
 		$topic_row['U_VIEW_FORUM'] = $this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']);
