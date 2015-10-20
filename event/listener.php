@@ -76,15 +76,8 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
 			'core.pagination_generate_page_link'		=> 'pagination_generate_page_link',
-
-
-
 			'core.display_forums_modify_forum_rows'		=> 'display_forums_modify_forum_rows',
-
-
 			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
-
-
 //			'core.modify_username_string'				=> 'modify_username_string',
 			'core.viewforum_modify_topicrow'			=> 'viewforum_modify_topicrow',
 			'core.search_modify_tpl_ary'				=> 'search_modify_tpl_ary',
