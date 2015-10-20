@@ -97,7 +97,7 @@ class listener implements EventSubscriberInterface
 	 */
 	public function append_sid($event)
 	{
-		if ($event['url'] == $this->path_helper->update_web_root_path($this->phpbb_root_path . 'index.php'))
+		if ($event['url'] == $this->path_helper->update_web_root_path($this->phpbb_root_path . 'index.php') && empty($event['params']))
 		{
 			//$event['append_sid_overwrite'] = $this->path_helper->update_web_root_path($this->phpbb_root_path . 'forum.html');
 			$event['append_sid_overwrite'] = $this->path_helper->update_web_root_path($this->phpbb_root_path);
