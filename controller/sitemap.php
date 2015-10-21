@@ -68,8 +68,6 @@ class sitemap
 		return $this->helper->render('sitemap.html');
 	}
 
-
-
 	public function index()
 	{
 		header('Content-Type: application/xml');
@@ -85,8 +83,8 @@ class sitemap
 			if ($this->auth->acl_get('f_list', $row['forum_id']))
 			{
 				$this->template->assign_block_vars('forumlist', array(
-					'URL'			=> $board_url . $this->helper->route('tas2580_seourls_sitemap', array('id' => $row['forum_id'])),
-					'TIME'		=> gmdate('Y-m-d\TH:i:s+00:00', (int) $row['forum_last_post_time']),
+					'URL'			=> $this->helper->route('tas2580_seourls_sitemap', array('id' => $row['forum_id']), true, '', \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
+					'TIME'		=> !empty($row['forum_last_post_time']) ? gmdate('Y-m-d\TH:i:s+00:00', (int) $row['forum_last_post_time']) : '',
 				));
 			}
 		}
