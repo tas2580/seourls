@@ -85,7 +85,7 @@ class sitemap
 			if ($this->auth->acl_get('f_list', $row['forum_id']))
 			{
 				$this->template->assign_block_vars('forumlist', array(
-					'URL'		=> $board_url . '/seositemap-' . $row['forum_id'] . '.xml',
+					'URL'			=> $board_url . $this->helper->route('tas2580_seourls_sitemap', array('id' => $row['forum_id'])),
 					'TIME'		=> gmdate('Y-m-d\TH:i:s+00:00', (int) $row['forum_last_post_time']),
 				));
 			}
