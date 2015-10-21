@@ -68,8 +68,6 @@ class sitemap
 		return $this->helper->render('sitemap.html');
 	}
 
-
-
 	public function index()
 	{
 		header('Content-Type: application/xml');
