@@ -60,7 +60,7 @@ class sitemap
 			{
 				$this->template->assign_block_vars('urlset', array(
 					'URL'		=> $forum_url .  $this->title_to_url($row['topic_title']) . '-t' . $row['topic_id'] . '.html',
-					'TIME'		=> gmdate('Y-m-d\TH:i:s+00:00', (int) $row['topic_last_post_time']),
+					'TIME'		=> ($row['topic_last_post_time'] <> 0)  ? gmdate('Y-m-d\TH:i:s+00:00', (int) $row['topic_last_post_time']) : '',
 				));
 			}
 		}
@@ -83,8 +83,8 @@ class sitemap
 			if ($this->auth->acl_get('f_list', $row['forum_id']))
 			{
 				$this->template->assign_block_vars('forumlist', array(
-					'URL'			=> $this->helper->route('tas2580_seourls_sitemap', array('id' => $row['forum_id']), true, '', \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
-					'TIME'		=> !empty($row['forum_last_post_time']) ? gmdate('Y-m-d\TH:i:s+00:00', (int) $row['forum_last_post_time']) : '',
+					'URL'		=> $this->helper->route('tas2580_seourls_sitemap', array('id' => $row['forum_id']), true, '', \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
+					'TIME'		=>($row['forum_last_post_time'] <> 0) ? gmdate('Y-m-d\TH:i:s+00:00', (int) $row['forum_last_post_time']) : '',
 				));
 			}
 		}
