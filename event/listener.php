@@ -276,8 +276,8 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['forum_data']['forum_id'];
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
-			'U_VIEW_FORUM'	=> $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start),
-			'U_CANONICAL'		=> $this->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start, true),
+			'U_VIEW_FORUM'	=> $this->generate_forum_link($this->forum_id, $this->forum_title, $start),
+			'U_CANONICAL'		=> $this->generate_forum_link($this->forum_id, $this->forum_title, $start, true),
 		));
 	}
 
@@ -294,7 +294,7 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['topic_data']['forum_id'];
 		$this->topic_title = $event['topic_data']['topic_title'];
 		$this->topic_id = $event['topic_data']['topic_id'];
-		$event['viewtopic_url'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $event['start']);
+		$event['viewtopic_url'] = $this->generate_topic_link($this->forum_id , $this->forum_title, $this->topic_id, $this->topic_title, $event['start']);
 	}
 
 	/**
@@ -342,8 +342,8 @@ class listener implements EventSubscriberInterface
 		$this->topic_id = $event['row']['topic_id'];
 
 		$topic_row = $event['topic_row'];
-		$topic_row['U_VIEW_TOPIC'] = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
-		$topic_row['U_VIEW_FORUM'] = $this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']);
+		$topic_row['U_VIEW_TOPIC'] = $this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
+		$topic_row['U_VIEW_FORUM'] = $this->generate_forum_link($this->forum_id, $this->forum_title);
 		$topic_row['U_LAST_POST'] = $this->generate_seo_lastpost($topic_row['TOPIC_REPLIES'], $topic_row['U_VIEW_TOPIC']) . '#p' . $event['row']['topic_last_post_id'];
 		$event['topic_row'] = $topic_row;
 	}
