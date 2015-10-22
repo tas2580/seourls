@@ -313,6 +313,21 @@ class listener implements EventSubscriberInterface
 	}
 
 	/**
+	 * Rewrite mini post img link
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function viewtopic_modify_post_row($event)
+	{
+		$row = $event['post_row'];
+		$start = $this->request->variable('start', 0);
+		$row['U_MINI_POST'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $start) . '#p' . $event['row']['post_id'];
+		$event['post_row'] = $row;
+	}
+
+	/**
 	 * Rewrite URLs in Similar Topics Extension
 	 *
 	 * @param	object	$event	The event object
