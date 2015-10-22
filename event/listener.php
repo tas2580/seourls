@@ -294,7 +294,9 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['topic_data']['forum_id'];
 		$this->topic_title = $event['topic_data']['topic_title'];
 		$this->topic_id = $event['topic_data']['topic_id'];
-		$event['viewtopic_url'] = $this->generate_topic_link($this->forum_id , $this->forum_title, $this->topic_id, $this->topic_title, $event['start']);
+
+		// Can not be rewritten because of print and bookmark
+		//$event['viewtopic_url'] = $this->generate_topic_link($this->forum_id , $this->forum_title, $this->topic_id, $this->topic_title, $event['start']);
 	}
 
 	/**
