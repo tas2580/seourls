@@ -84,6 +84,7 @@ class listener implements EventSubscriberInterface
 			'core.viewforum_get_topic_data'			=> 'viewforum_get_topic_data',
 			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
 			'core.viewtopic_modify_page_title'			=> 'viewtopic_modify_page_title',
+			'core.viewtopic_modify_post_row'			=> 'viewtopic_modify_post_row',
 			'vse.similartopics.modify_topicrow'			=> 'similartopics_modify_topicrow',
 			'rmcgirr83.topfive.sql_pull_topics_data'		=> 'topfive_sql_pull_topics_data',
 			'rmcgirr83.topfive.modify_tpl_ary'			=> 'topfive_modify_tpl_ary',
@@ -293,7 +294,7 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['topic_data']['forum_id'];
 		$this->topic_title = $event['topic_data']['topic_title'];
 		$this->topic_id = $event['topic_data']['topic_id'];
-		//$event['viewtopic_url'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $event['start']);
+		$event['viewtopic_url'] = $this->generate_topic_link($event['topic_data']['forum_id'], $event['topic_data']['forum_name'], $event['topic_data']['topic_id'], $event['topic_data']['topic_title'], $event['start']);
 	}
 
 	/**
