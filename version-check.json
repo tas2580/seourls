@@ -1,0 +1,11 @@
+{
+	"stable": {
+		"0.2": {
+			"current": "0.2.3",
+			"download": "https://tas2580.net/downloads/phpbb-seo-url/",
+			"announcement": "",
+			"eol": null,
+			"security": false
+		}
+	}
+}
