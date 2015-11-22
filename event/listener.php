@@ -161,10 +161,13 @@ class listener implements EventSubscriberInterface
 	public function display_forums_modify_forum_rows($event)
 	{
 		$forum_rows = $event['forum_rows'];
-		$forum_rows[$event['parent_id']]['forum_name_last_post'] =$event['row']['forum_name'];
-		$forum_rows[$event['parent_id']]['topic_id_last_post'] =$event['row']['topic_id'];
-		$forum_rows[$event['parent_id']]['topic_title_last_post'] =$event['row']['topic_title'];
-		$event['forum_rows'] = $forum_rows;
+		if ($event['row']['forum_last_post_time'] == $forum_rows[$event['parent_id']]['forum_last_post_time'])
+		{
+			$forum_rows[$event['parent_id']]['forum_name_last_post'] =$event['row']['forum_name'];
+			$forum_rows[$event['parent_id']]['topic_id_last_post'] =$event['row']['topic_id'];
+			$forum_rows[$event['parent_id']]['topic_title_last_post'] =$event['row']['topic_title'];
+			$event['forum_rows'] = $forum_rows;
+		}
 	}
 
 
