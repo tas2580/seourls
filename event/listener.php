@@ -110,7 +110,7 @@ class listener implements EventSubscriberInterface
 	 */
 	public function append_sid($event)
 	{
-		if(preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
+		if (preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
 		{
 			$url = $this->phpbb_root_path . 'viewtopic.' . $this->php_ext ;
 			$event['url'] = $url;
