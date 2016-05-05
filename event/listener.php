@@ -527,7 +527,7 @@ class listener implements EventSubscriberInterface
 	 * @param	string	$title	The title to use in the URL
 	 * @return	string	Title to use in URLs
 	 */
-	private function title_to_url($title)
+	public static function title_to_url($title)
 	{
 		$url = strtolower(censor_text(utf8_normalize_nfc(strip_tags($title))));
 
