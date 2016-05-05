@@ -3,7 +3,7 @@
 	"type": "phpbb-extension",
 	"description": "Rewrites URLs to SEO friendy URLs and provides a XML Sitemap",
 	"homepage": "https://tas2580.net/downloads/phpbb-seo-url/",
-	"version": "0.2.3",
+	"version": "0.3.0",
 	"keywords": ["phpbb", "extension", "seo", "url"],
 	"license": "GPL-2.0",
 	"authors": [
@@ -22,9 +22,9 @@
 		"phpbb/epv": "dev-master"
 	},
 	"extra": {
-		"display-name": "tas2580 SEO URLs",
+		"display-name": "SEO URLs",
 		"soft-require": {
-			"phpbb/phpbb": ">=3.1.4-RC1,<3.2.*@dev"
+			"phpbb/phpbb": ">=3.1.10-RC1,<3.2.0@dev"
 		},
 		"version-check": {
 			"host": "phpbb-versionscheck.cf",

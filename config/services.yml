@@ -11,10 +11,3 @@ services:
             - %core.root_path%
         tags:
             - { name: event.listener }
-    tas2580.seourls.sitemap:
-        class: tas2580\seourls\controller\sitemap
-        arguments:
-            - @auth
-            - @dbal.conn
-            - @controller.helper
-            - @template

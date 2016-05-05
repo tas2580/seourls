@@ -1,0 +1,7 @@
+url.rewrite-once = (
+	#phpBB SEO URLs
+	"/(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html(\?(.*))?"	=> "/viewtopic.php?f=$2&t=$4&start=$5&$7",
+	"/(.*)-f([0-9]*)/(.*)-t([0-9]*).html(\?(.*))?"			=> "/viewtopic.php?f=$2&t=$4&$6",
+	"/(.*)-f([0-9]*)/index-s([0-9]*).html(\?(.*))?"			=> "/viewforum.php?f=$2&start=$3&$5",
+	"/(.*)-f([0-9]*)/(\?(.*))?"						=> "/viewforum.php?f=$2&$4",
+)
