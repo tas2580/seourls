@@ -74,7 +74,7 @@ class listener implements EventSubscriberInterface
 	 * @static
 	 * @access public
 	 */
-	static public function getSubscribedEvents()
+	public static function getSubscribedEvents()
 	{
 		return array(
 			'core.append_sid'						=> 'append_sid',
@@ -445,7 +445,7 @@ class listener implements EventSubscriberInterface
 		$sql_array = $event['sql_array'];
 		$sql_array['SELECT'] = array_merge($sql_array, array('SELECT' => 'f.forum_name'));
 		$sql_array['LEFT_JOIN'] = array_merge($sql_array['LEFT_JOIN'], array('FROM' => array(FORUMS_TABLE => 'f'), 'ON' => 'f.forum_id = t.forum_id'));
-		//	$event['sql_array'] = $sql_array;
+		$event['sql_array'] = $sql_array;
 	}
 
 	/**
@@ -515,6 +515,7 @@ class listener implements EventSubscriberInterface
 	{
 		$url = str_replace('.html', '', $url);
 		$per_page = ($this->config['posts_per_page'] <= 0) ? 1 : $this->config['posts_per_page'];
+		$last_post_link = '';
 		if (($replies + 1) > $per_page)
 		{
 			for ($j = 0; $j < $replies + 1; $j += $per_page)
