@@ -2,8 +2,6 @@ RewriteBase /
 
 RewriteRule ^(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html viewtopic.php?f=$2&t=$4&start=$5&%{QUERY_STRING} [L]
 RewriteRule ^(.*)-f([0-9]*)/(.*)-t([0-9]*).html viewtopic.php?f=$2&t=$4&%{QUERY_STRING} [L]
-RewriteRule global/(.*)-t([0-9]*).html ./viewtopic.php?f=1&t=$2&%{QUERY_STRING} [L]
 RewriteRule ^(.*)-f([0-9]*)/index-s([0-9]*).html viewforum.php?f=$2&start=$3&%{QUERY_STRING} [L]
 RewriteRule ^(.*)-f([0-9]*)/ viewforum.php?f=$2&%{QUERY_STRING} [L]
 RewriteRule ^(.*)-f([0-9]*) viewforum.php?f=$2&%{QUERY_STRING} [L]
-RewriteRule ^forum.html index.php?%{QUERY_STRING} [L]
