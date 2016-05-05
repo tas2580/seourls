@@ -180,7 +180,7 @@ class listener implements EventSubscriberInterface
 		$navlinks = $event['navlinks'];
 		$navlinks_parents = $event['navlinks_parents'];
 
-		foreach($navlinks_parents as $id => $data)
+		foreach ($navlinks_parents as $id => $data)
 		{
 			$navlinks_parents[$id]['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($data['FORUM_ID'] , $data['FORUM_NAME']));
 		}
@@ -195,7 +195,7 @@ class listener implements EventSubscriberInterface
 	{
 		$tpl_ary = $event['tpl_ary'];
 		$row = $event['row'];
-		foreach($tpl_ary as $id => $data)
+		foreach ($tpl_ary as $id => $data)
 		{
 
 			$tpl_ary[$id]['LINK']	 = append_sid($this->generate_forum_link($row['forum_id'], $row['forum_name']));
