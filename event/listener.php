@@ -39,6 +39,9 @@ class listener implements EventSubscriberInterface
 	/** @var string phpbb_root_path */
 	protected $phpbb_root_path;
 
+	/** @var string php_ext */
+	protected $php_ext;
+
 	/**
 	 * Constructor
 	 *
@@ -49,9 +52,10 @@ class listener implements EventSubscriberInterface
 	 * @param \phpbb\user					$user				User Object
 	 * @param \phpbb\path_helper			$path_helper			Controller helper object
 	 * @param string						$phpbb_root_path		phpbb_root_path
+	 * @param string						$php_ext				php_ext
 	 * @access public
 	 */
-	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\template\template $template, \phpbb\request\request $request, \phpbb\user $user, \phpbb\path_helper $path_helper, $phpbb_root_path)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\template\template $template, \phpbb\request\request $request, \phpbb\user $user, \phpbb\path_helper $path_helper, $phpbb_root_path, $php_ext)
 	{
 		$this->auth = $auth;
 		$this->config = $config;
@@ -60,6 +64,7 @@ class listener implements EventSubscriberInterface
 		$this->user = $user;
 		$this->path_helper = $path_helper;
 		$this->phpbb_root_path = $phpbb_root_path;
+		$this->php_ext = $php_ext;
 	}
 
 	/**
@@ -72,6 +77,7 @@ class listener implements EventSubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return array(
+			'core.append_sid'						=> 'append_sid',
 			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
 			'core.display_forums_modify_forum_rows'		=> 'display_forums_modify_forum_rows',
@@ -93,6 +99,22 @@ class listener implements EventSubscriberInterface
 			'tas2580.sitemap_modify_before_output'		=> 'sitemap_modify_before_output',
 			'vse.similartopics.modify_topicrow'			=> 'similartopics_modify_topicrow',
 		);
+	}
+
+	/**
+	 * Correct the path of $viewtopic_url
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function append_sid($event)
+	{
+		if (preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
+		{
+			$url = $this->phpbb_root_path . 'viewtopic.' . $this->php_ext ;
+			$event['url'] = $url;
+		}
 	}
 
 	/**
