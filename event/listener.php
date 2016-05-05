@@ -78,8 +78,7 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_forum_rows'				=> 'display_forums_modify_forum_rows',
 			'core.display_forums_modify_sql'					=> 'display_forums_modify_sql',
 			'core.generate_forum_nav'						=> 'generate_forum_nav',
-			'core.make_jumpbox_modify_tpl_ary'					=> 'make_jumpbox_modify_tpl_ary',		// Not in phpBB
-			'core.page_header'								=> 'page_header',
+			'core.make_jumpbox_modify_tpl_ary'					=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
 			'core.pagination_generate_page_link'				=> 'pagination_generate_page_link',
 			'core.search_modify_tpl_ary'						=> 'search_modify_tpl_ary',
 			'core.viewforum_modify_topicrow'					=> 'viewforum_modify_topicrow',
@@ -218,11 +217,6 @@ class listener implements EventSubscriberInterface
 		}
 
 		$event['tpl_ary'] = $tpl_ary;
-	}
-	
-	public function page_header()
-	{
-		$this->user->lang['TRANSLATION_INFO'] = $this->user->lang['TRANSLATION_INFO']  . ' - SEO URLs by <a href="https://tas2580.net">tas2580</a>';
 	}
 
 	/**
