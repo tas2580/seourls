@@ -72,42 +72,27 @@ class listener implements EventSubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return array(
-			'core.display_forums_modify_category_template_vars'	=> 'display_forums_modify_category_template_vars',
-			'core.display_forums_modify_sql'					=> 'display_forums_modify_sql',
-			'core.display_forums_modify_template_vars'			=> 'display_forums_modify_template_vars',
-			'core.display_forums_modify_forum_rows'				=> 'display_forums_modify_forum_rows',
-			'core.display_forums_modify_sql'					=> 'display_forums_modify_sql',
-			'core.generate_forum_nav'						=> 'generate_forum_nav',
-			'core.make_jumpbox_modify_tpl_ary'					=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
-			'core.pagination_generate_page_link'				=> 'pagination_generate_page_link',
-			'core.search_modify_tpl_ary'						=> 'search_modify_tpl_ary',
-			'core.viewforum_modify_topicrow'					=> 'viewforum_modify_topicrow',
-			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
-			'core.viewtopic_assign_template_vars_before'			=> 'viewtopic_assign_template_vars_before',
-			'core.viewtopic_modify_page_title'					=> 'viewtopic_modify_page_title',
-			'core.viewtopic_modify_post_row'					=> 'viewtopic_modify_post_row',
-			'core.viewtopic_get_post_data'						=> 'viewtopic_get_post_data',
+			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
+			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
+			'core.display_forums_modify_forum_rows'		=> 'display_forums_modify_forum_rows',
+			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
+			'core.generate_forum_nav'				=> 'generate_forum_nav',
+			'core.make_jumpbox_modify_tpl_ary'			=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
+			'core.pagination_generate_page_link'		=> 'pagination_generate_page_link',
+			'core.search_modify_tpl_ary'				=> 'search_modify_tpl_ary',
+			'core.viewforum_modify_topicrow'			=> 'viewforum_modify_topicrow',
+			'core.viewforum_get_topic_data'			=> 'viewforum_get_topic_data',
+			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
+			'core.viewtopic_modify_page_title'			=> 'viewtopic_modify_page_title',
+			'core.viewtopic_modify_post_row'			=> 'viewtopic_modify_post_row',
+			'core.viewtopic_get_post_data'				=> 'viewtopic_get_post_data',
 
 			// Rewrite other Extensions
-			'rmcgirr83.topfive.sql_pull_topics_data'				=> 'topfive_sql_pull_topics_data',
-			'rmcgirr83.topfive.modify_tpl_ary'					=> 'topfive_modify_tpl_ary',
-			'tas2580.sitemap_modify_before_output'				=> 'sitemap_modify_before_output',
-			'vse.similartopics.modify_topicrow'					=> 'similartopics_modify_topicrow',
+			'rmcgirr83.topfive.sql_pull_topics_data'		=> 'topfive_sql_pull_topics_data',
+			'rmcgirr83.topfive.modify_tpl_ary'			=> 'topfive_modify_tpl_ary',
+			'tas2580.sitemap_modify_before_output'		=> 'sitemap_modify_before_output',
+			'vse.similartopics.modify_topicrow'			=> 'similartopics_modify_topicrow',
 		);
-	}
-
-	/**
-	 * Rewrite links to categories in forum index
-	 *
-	 * @param	object	$event	The event object
-	 * @return	null
-	 * @access	public
-	 */
-	public function display_forums_modify_category_template_vars($event)
-	{
-		$cat_row = $event['cat_row'];
-		$cat_row['U_VIEWFORUM'] = append_sid($this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']));
-		$event['cat_row'] = $cat_row;
 	}
 
 	/**
@@ -257,11 +242,11 @@ class listener implements EventSubscriberInterface
 	public function search_modify_tpl_ary($event)
 	{
 		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
-		$url = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		$u_view_topic = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
 
 		$tpl_ary = $event['tpl_ary'];
-		$tpl_ary['U_LAST_POST'] = append_sid($this->generate_lastpost_link($replies, $url) . '#p' . $event['row']['topic_last_post_id']);
-		$tpl_ary['U_VIEW_TOPIC'] = append_sid($this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']));
+		$tpl_ary['U_LAST_POST'] = append_sid($this->generate_lastpost_link($replies, $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
+		$tpl_ary['U_VIEW_TOPIC'] = append_sid($u_view_topic);
 		$tpl_ary['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']));
 
 		$event['tpl_ary'] = $tpl_ary;
@@ -282,9 +267,10 @@ class listener implements EventSubscriberInterface
 		$this->topic_title = $topic_row['TOPIC_TITLE'];
 		$this->topic_id = $topic_row['TOPIC_ID'];
 
-		$topic_row['U_VIEW_TOPIC'] = append_sid($this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title));
+		$u_view_topic = $this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
+		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
 		$topic_row['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($this->forum_id, $this->forum_title));
-		$topic_row['U_LAST_POST'] = append_sid($this->generate_lastpost_link($event['topic_row']['REPLIES'], $topic_row['U_VIEW_TOPIC']) . '#p' . $event['row']['topic_last_post_id']);
+		$topic_row['U_LAST_POST'] = append_sid($this->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
 
 		$event['topic_row'] = $topic_row;
 	}
@@ -474,7 +460,7 @@ class listener implements EventSubscriberInterface
 		{
 			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
 		}
-		return $this->path_helper->update_web_root_path($this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html');
+		return $this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
 	}
 
 	/**
@@ -493,7 +479,7 @@ class listener implements EventSubscriberInterface
 		{
 			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : '');
 		}
-		return $this->path_helper->update_web_root_path($this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : ''));
+		return $this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : '');
 	}
 
 	/**
