@@ -1,5 +1,4 @@
 <?php
-
 /**
  *
  * @package phpBB Extension - tas2580 SEO URLs
@@ -17,21 +16,14 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class listener implements EventSubscriberInterface
 {
-
-	/** @var \phpbb\auth\auth */
-	protected $auth;
-
-	/** @var \phpbb\config\config */
-	protected $config;
+	/** @var \tas2580\seourls\event\base */
+	protected $base;
 
 	/** @var \phpbb\template\template */
 	protected $template;
 
 	/** @var \phpbb\request\request */
 	protected $request;
-
-	/** @var \phpbb\user */
-	protected $user;
 
 	/** @var \phpbb\path_helper */
 	protected $path_helper;
@@ -45,23 +37,19 @@ class listener implements EventSubscriberInterface
 	/**
 	 * Constructor
 	 *
-	 * @param \phpbb\auth\auth				auth					Authentication object
-	 * @param \phpbb\config\config			$config				Config Object
+	 * @param \tas2580\seourls\event\base		$base
 	 * @param \phpbb\template\template		$template				Template object
 	 * @param \phpbb\request\request			$request				Request object
-	 * @param \phpbb\user					$user				User Object
 	 * @param \phpbb\path_helper			$path_helper			Controller helper object
 	 * @param string						$phpbb_root_path		phpbb_root_path
 	 * @param string						$php_ext				php_ext
 	 * @access public
 	 */
-	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\template\template $template, \phpbb\request\request $request, \phpbb\user $user, \phpbb\path_helper $path_helper, $phpbb_root_path, $php_ext)
+	public function __construct(\tas2580\seourls\event\base $base, \phpbb\template\template $template, \phpbb\request\request $request, \phpbb\path_helper $path_helper, $phpbb_root_path, $php_ext)
 	{
-		$this->auth = $auth;
-		$this->config = $config;
+		$this->base = $base;
 		$this->template = $template;
 		$this->request = $request;
-		$this->user = $user;
 		$this->path_helper = $path_helper;
 		$this->phpbb_root_path = $phpbb_root_path;
 		$this->php_ext = $php_ext;
@@ -81,7 +69,6 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
 			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
 			'core.display_forums_modify_forum_rows'		=> 'display_forums_modify_forum_rows',
-			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
 			'core.generate_forum_nav'				=> 'generate_forum_nav',
 			'core.make_jumpbox_modify_tpl_ary'			=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
 			'core.pagination_generate_page_link'		=> 'pagination_generate_page_link',
@@ -92,12 +79,6 @@ class listener implements EventSubscriberInterface
 			'core.viewtopic_modify_page_title'			=> 'viewtopic_modify_page_title',
 			'core.viewtopic_modify_post_row'			=> 'viewtopic_modify_post_row',
 			'core.viewtopic_get_post_data'				=> 'viewtopic_get_post_data',
-
-			// Rewrite other Extensions
-			'rmcgirr83.topfive.sql_pull_topics_data'		=> 'topfive_sql_pull_topics_data',
-			'rmcgirr83.topfive.modify_tpl_ary'			=> 'topfive_modify_tpl_ary',
-			'tas2580.sitemap_modify_before_output'		=> 'sitemap_modify_before_output',
-			'vse.similartopics.modify_topicrow'			=> 'similartopics_modify_topicrow',
 		);
 	}
 
@@ -164,28 +145,29 @@ class listener implements EventSubscriberInterface
 	 */
 	public function display_forums_modify_template_vars($event)
 	{
-		// Rewrite URLs of sub forums
 		$subforums_row = $event['subforums_row'];
+		$forum_row = $event['forum_row'];
+
+		// Rewrite URLs of sub forums
 		foreach ($subforums_row as $i => $subforum)
 		{
 			// A little bit a dirty way, but there is no better solution
 			$query = str_replace('&amp;', '&', parse_url($subforum['U_SUBFORUM'], PHP_URL_QUERY));
 			parse_str($query, $id);
-			$subforums_row[$i]['U_SUBFORUM'] = append_sid($this->generate_forum_link($id['f'], $subforum['SUBFORUM_NAME']));
+			$subforums_row[$i]['U_SUBFORUM'] = append_sid($this->base->generate_forum_link($id['f'], $subforum['SUBFORUM_NAME']));
 		}
-		$event['subforums_row'] = $subforums_row;
-
-		$forum_row = $event['forum_row'];
 
 		// Update the image source in forums
 		$img = $this->path_helper->update_web_root_path($forum_row['FORUM_IMAGE_SRC']);
 		$forum_row['FORUM_IMAGE'] = preg_replace('#img src=\"(.*)\" alt#', 'img src="' . $img . '" alt', $forum_row['FORUM_IMAGE']);
 
 		// Rewrite links to topics, posts and forums
-		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
-		$url = $this->generate_topic_link($event['row']['forum_id_last_post'], $event['row']['forum_name_last_post'], $event['row']['topic_id_last_post'], $event['row']['topic_title_last_post']);
-		$forum_row['U_LAST_POST'] = append_sid($this->generate_lastpost_link($replies, $url) . '#p' . $event['row']['forum_last_post_id']);
-		$forum_row['U_VIEWFORUM'] = append_sid($this->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']));
+		$replies = $this->base->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		$url = $this->base->generate_topic_link($event['row']['forum_id_last_post'], $event['row']['forum_name_last_post'], $event['row']['topic_id_last_post'], $event['row']['topic_title_last_post']);
+		$forum_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($replies, $url) . '#p' . $event['row']['forum_last_post_id']);
+		$forum_row['U_VIEWFORUM'] = append_sid($this->base->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']));
+
+		$event['subforums_row'] = $subforums_row;
 		$event['forum_row'] = $forum_row;
 	}
 
@@ -204,10 +186,10 @@ class listener implements EventSubscriberInterface
 
 		foreach ($navlinks_parents as $id => $data)
 		{
-			$navlinks_parents[$id]['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($data['FORUM_ID'] , $data['FORUM_NAME']));
+			$navlinks_parents[$id]['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($data['FORUM_ID'] , $data['FORUM_NAME']));
 		}
 
-		$navlinks['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($forum_data['forum_id'], $forum_data['forum_name']));
+		$navlinks['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($forum_data['forum_id'], $forum_data['forum_name']));
 		$event['navlinks'] = $navlinks;
 		$event['navlinks_parents'] = $navlinks_parents;
 	}
@@ -219,8 +201,7 @@ class listener implements EventSubscriberInterface
 		$row = $event['row'];
 		foreach ($tpl_ary as $id => $data)
 		{
-
-			$tpl_ary[$id]['LINK']	 = append_sid($this->generate_forum_link($row['forum_id'], $row['forum_name']));
+			$tpl_ary[$id]['LINK']	 = append_sid($this->base->generate_forum_link($row['forum_id'], $row['forum_name']));
 		}
 
 		$event['tpl_ary'] = $tpl_ary;
@@ -246,11 +227,11 @@ class listener implements EventSubscriberInterface
 		$start = (($event['on_page'] - 1) * $event['per_page']);
 		if (!empty($this->topic_title))
 		{
-			$event['generate_page_link_override'] = append_sid($this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title, $start));
+			$event['generate_page_link_override'] = append_sid($this->base->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title, $start));
 		}
 		else if (!empty($this->forum_title))
 		{
-			$event['generate_page_link_override'] = append_sid($this->generate_forum_link($this->forum_id, $this->forum_title, $start));
+			$event['generate_page_link_override'] = append_sid($this->base->generate_forum_link($this->forum_id, $this->forum_title, $start));
 		}
 	}
 
@@ -263,13 +244,13 @@ class listener implements EventSubscriberInterface
 	 */
 	public function search_modify_tpl_ary($event)
 	{
-		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
-		$u_view_topic = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
+		$replies = $this->base->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
+		$u_view_topic = $this->base->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
 
 		$tpl_ary = $event['tpl_ary'];
-		$tpl_ary['U_LAST_POST'] = append_sid($this->generate_lastpost_link($replies, $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
+		$tpl_ary['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($replies, $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
 		$tpl_ary['U_VIEW_TOPIC'] = append_sid($u_view_topic);
-		$tpl_ary['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']));
+		$tpl_ary['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']));
 
 		$event['tpl_ary'] = $tpl_ary;
 	}
@@ -289,10 +270,10 @@ class listener implements EventSubscriberInterface
 		$this->topic_title = $topic_row['TOPIC_TITLE'];
 		$this->topic_id = $topic_row['TOPIC_ID'];
 
-		$u_view_topic = $this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
+		$u_view_topic = $this->base->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
 		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
-		$topic_row['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($this->forum_id, $this->forum_title));
-		$topic_row['U_LAST_POST'] = append_sid($this->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
+		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($this->forum_id, $this->forum_title));
+		$topic_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
 
 		$event['topic_row'] = $topic_row;
 	}
@@ -306,12 +287,10 @@ class listener implements EventSubscriberInterface
 	 */
 	public function viewforum_get_topic_data($event)
 	{
-		$this->forum_title = $event['forum_data']['forum_name'];
-		$this->forum_id = $event['forum_data']['forum_id'];
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
-			'U_VIEW_FORUM'	=> append_sid($this->generate_forum_link($this->forum_id, $this->forum_title, $start)),
-			'U_CANONICAL'		=> $this->generate_forum_link($this->forum_id, $this->forum_title, $start, true),
+			'U_VIEW_FORUM'	=> append_sid($this->base->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start)),
+			'U_CANONICAL'		=> $this->base->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start, true),
 		));
 	}
 
@@ -326,8 +305,8 @@ class listener implements EventSubscriberInterface
 	{
 		$data = $event['topic_data'];
 		$this->template->assign_vars(array(
-			'U_VIEW_TOPIC'		=> append_sid($this->generate_topic_link($event['forum_id'] , $data['forum_name'], $event['topic_id'], $data['topic_title'], $event['start'])),
-			'U_VIEW_FORUM'	=> append_sid($this->generate_forum_link($event['forum_id'] , $data['forum_name'])),
+			'U_VIEW_TOPIC'		=> append_sid($this->base->generate_topic_link($event['forum_id'] , $data['forum_name'], $event['topic_id'], $data['topic_title'], $event['start'])),
+			'U_VIEW_FORUM'	=> append_sid($this->base->generate_forum_link($event['forum_id'] , $data['forum_name'])),
 		));
 	}
 
@@ -358,7 +337,7 @@ class listener implements EventSubscriberInterface
 		$start = $this->request->variable('start', 0);
 		$data = $event['topic_data'];
 		$this->template->assign_vars(array(
-			'U_CANONICAL'		=> $this->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start, true),
+			'U_CANONICAL'		=> $this->base->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start, true),
 		));
 	}
 
@@ -374,200 +353,7 @@ class listener implements EventSubscriberInterface
 		$row = $event['post_row'];
 		$start = $this->request->variable('start', 0);
 		$data = $event['topic_data'];
-		$row['U_MINI_POST'] = append_sid($this->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start) . '#p' . $event['row']['post_id']);
+		$row['U_MINI_POST'] = append_sid($this->base->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start) . '#p' . $event['row']['post_id']);
 		$event['post_row'] = $row;
 	}
-
-	/**
-	 * Rewrite URLs in tas2580 Sitemap Extension
-	 *
-	 * @param	object	$event	The event object
-	 * @return	null
-	 * @access	public
-	 */
-	public function sitemap_modify_before_output($event)
-	{
-		// Nothing to rewrite in the sitemap index
-		if ($event['type'] == 'sitemapindex')
-		{
-			return;
-		}
-
-		$url_data =$event['url_data'] ;
-
-		foreach ($url_data as $id => $data)
-		{
-			$row = $data['row'];
-			if (isset($row['topic_id']))
-			{
-				$url_data[$id]['url'] = $this->generate_topic_link($row['forum_id'], $row['forum_name'], $row['topic_id'], $row['topic_title'],  $data['start'], true);
-			}
-			else if (isset($row['forum_id']))
-			{
-				$url_data[$id]['url'] = $this->generate_forum_link($row['forum_id'], $row['forum_name'], $data['start'], true);
-			}
-		}
-
-		$event['url_data'] = $url_data;
-	}
-
-	/**
-	 * Rewrite URLs in Similar Topics Extension
-	 *
-	 * @param	object	$event	The event object
-	 * @return	null
-	 * @access	public
-	 */
-	public function similartopics_modify_topicrow($event)
-	{
-		$this->forum_title = $event['row']['forum_name'];
-		$this->forum_id = $event['row']['forum_id'];
-		$this->topic_title = $event['row']['topic_title'];
-		$this->topic_id = $event['row']['topic_id'];
-
-		$topic_row = $event['topic_row'];
-		$u_view_topic= $this->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
-		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
-		$topic_row['U_VIEW_FORUM'] = append_sid($this->generate_forum_link($this->forum_id, $this->forum_title));
-		$topic_row['U_LAST_POST'] = append_sid($this->generate_lastpost_link($topic_row['TOPIC_REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
-		$event['topic_row'] = $topic_row;
-	}
-
-	/**
-	 * Rewrite URLs in Top 5 Extension
-	 *
-	 * @param	object	$event	The event object
-	 * @return	null
-	 * @access	public
-	 */
-	public function topfive_sql_pull_topics_data($event)
-	{
-		$sql_array = $event['sql_array'];
-		$sql_array['SELECT'] = array_merge($sql_array, array('SELECT' => 'f.forum_name'));
-		$sql_array['LEFT_JOIN'] = array_merge($sql_array['LEFT_JOIN'], array('FROM' => array(FORUMS_TABLE => 'f'), 'ON' => 'f.forum_id = t.forum_id'));
-		$event['sql_array'] = $sql_array;
-	}
-
-	/**
-	 * Rewrite URLs in Top 5 Extension
-	 *
-	 * @param	object	$event	The event object
-	 * @return	null
-	 * @access	public
-	 */
-	public function topfive_modify_tpl_ary($event)
-	{
-		$tpl_ary = $event['tpl_ary'];
-		$replies = $this->get_count('topic_posts', $event['row'], $event['row']['forum_id']) - 1;
-		$u_view_topic = $this->generate_topic_link($event['row']['forum_id'], $event['row']['forum_name'], $event['row']['topic_id'], $event['row']['topic_title']);
-		$tpl_ary['U_TOPIC'] = append_sid($this->generate_lastpost_link($replies, $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
-		$event['tpl_ary'] = $tpl_ary;
-	}
-
-	/**
-	 * Generate the SEO link for a topic
-	 *
-	 * @param	int		$forum_id		The ID of the forum
-	 * @param	string	$forum_name		The title of the forum
-	 * @param	int		$topic_id		The ID if the topic
-	 * @param	string	$topic_title	The title of the topic
-	 * @param	int		$start			Optional start parameter
-	 * @param	bool	$full			Return the full URL
-	 * @return	string	The SEO URL
-	 * @access private
-	 */
-	private function generate_topic_link($forum_id, $forum_name, $topic_id, $topic_title, $start = 0, $full = false)
-	{
-		if ($full)
-		{
-			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
-		}
-		return $this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
-	}
-
-	/**
-	 * Generate the SEO link for a forum
-	 *
-	 * @param	int		$forum_id		The ID of the forum
-	 * @param	string	$forum_name		The title of the forum
-	 * @param	int		$start			Optional start parameter
-	 * @param	bool	$full			Return the full URL
-	 * @return	string	The SEO URL
-	 * @access private
-	 */
-	private function generate_forum_link($forum_id, $forum_name, $start = 0, $full = false)
-	{
-		if ($full)
-		{
-			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : '');
-		}
-		return $this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : '');
-	}
-
-	/**
-	 *
-	 * @global	type	$_SID
-	 * @param	int		$replies	Replays in the topic
-	 * @param	string	$url		URL oft the topic
-	 * @return	string				The URL with start included
-	 */
-	private function generate_lastpost_link($replies, $url)
-	{
-		$url = str_replace('.html', '', $url);
-		$per_page = ($this->config['posts_per_page'] <= 0) ? 1 : $this->config['posts_per_page'];
-		$last_post_link = '';
-		if (($replies + 1) > $per_page)
-		{
-			for ($j = 0; $j < $replies + 1; $j += $per_page)
-			{
-				$last_post_link = $url . '-s' . $j . '.html';
-			}
-		}
-		else
-		{
-			$last_post_link = $url . '.html';
-		}
-		return $last_post_link;
-	}
-
-	/**
-	 * Replace letters to use title in URL
-	 *
-	 * @param	string	$title	The title to use in the URL
-	 * @return	string	Title to use in URLs
-	 */
-	public static function title_to_url($title)
-	{
-		$url = strtolower(censor_text(utf8_normalize_nfc(strip_tags($title))));
-
-		// Let's replace
-		$url_search = array(' ', 'í', 'ý', 'ß', 'ö', 'ô', 'ó', 'ò', 'ä', 'â', 'à', 'á', 'é', 'è', 'ü', 'ú', 'ù', 'ñ', 'ß', '²', '³', '@', '€', '$');
-		$url_replace = array('-', 'i', 'y', 's', 'oe', 'o', 'o', 'o', 'ae', 'a', 'a', 'a', 'e', 'e', 'ue', 'u', 'u', 'n', 'ss', '2', '3', 'at', 'eur', 'usd');
-		$url = str_replace($url_search, $url_replace, $url);
-		$url_search = array('&amp;', '&quot;', '&', '"', "'", '¸', '`', '(', ')', '[', ']', '<', '>', '{', '}', '.', ':', ',', ';', '!', '?', '+', '*', '/', '=', 'µ', '#', '~', '"', '§', '%', '|', '°', '^', '„', '“');
-		$url = str_replace($url_search, '-', $url);
-		$url = str_replace(array('----', '---', '--'), '-', $url);
-
-		$url = substr($url, 0, 50); // Max length for a title in URL
-		return urlencode($url);
-	}
-
-	/**
-	 * Get the topics post count or the forums post/topic count based on permissions
-	 *
-	 * @param $mode            string    One of topic_posts, forum_posts or forum_topics
-	 * @param $data            array    Array with the topic/forum data to calculate from
-	 * @param $forum_id        int        The forum id is used for permission checks
-	 * @return int    Number of posts/topics the user can see in the topic/forum
-	 */
-	private function get_count($mode, $data, $forum_id)
-	{
-		if (!$this->auth->acl_get('m_approve', $forum_id))
-		{
-			return (int) $data[$mode . '_approved'];
-		}
-
-		return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
-	}
-
 }
