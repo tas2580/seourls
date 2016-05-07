@@ -28,7 +28,7 @@ class base
 	 * Constructor
 	 *
 	 * @param \phpbb\auth\auth				auth					Authentication object
-	 * @param \phpbb\config\config			$config				Config Object
+	 * @param \phpbb\config\config			$config					Config Object
 	 * @param string						$phpbb_root_path		phpbb_root_path
 	 * @access public
 	 */

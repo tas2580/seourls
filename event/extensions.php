@@ -40,7 +40,7 @@ class extensions implements EventSubscriberInterface
 	public static function getSubscribedEvents()
 	{
 		return array(
-			'rmcgirr83.topfive.sql_pull_topics_data'		=> 'topfive_sql_pull_topics_data',
+			'rmcgirr83.topfive.sql_pull_topics_data'	=> 'topfive_sql_pull_topics_data',
 			'rmcgirr83.topfive.modify_tpl_ary'			=> 'topfive_modify_tpl_ary',
 			'tas2580.sitemap_modify_before_output'		=> 'sitemap_modify_before_output',
 			'vse.similartopics.modify_topicrow'			=> 'similartopics_modify_topicrow',

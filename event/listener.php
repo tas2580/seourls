@@ -34,12 +34,14 @@ class listener implements EventSubscriberInterface
 	/** @var string php_ext */
 	protected $php_ext;
 
+	private $in_viewforum;
+
 	/**
 	 * Constructor
 	 *
-	 * @param \tas2580\seourls\event\base		$base
+	 * @param \tas2580\seourls\event\base	$base
 	 * @param \phpbb\template\template		$template				Template object
-	 * @param \phpbb\request\request			$request				Request object
+	 * @param \phpbb\request\request		$request				Request object
 	 * @param \phpbb\path_helper			$path_helper			Controller helper object
 	 * @param string						$phpbb_root_path		phpbb_root_path
 	 * @param string						$php_ext				php_ext
@@ -53,6 +55,8 @@ class listener implements EventSubscriberInterface
 		$this->path_helper = $path_helper;
 		$this->phpbb_root_path = $phpbb_root_path;
 		$this->php_ext = $php_ext;
+
+		$this->in_viewtopic = false;
 	}
 
 	/**
@@ -65,20 +69,21 @@ class listener implements EventSubscriberInterface
 	public static function getSubscribedEvents()
 	{
 		return array(
-			'core.append_sid'						=> 'append_sid',
-			'core.display_forums_modify_sql'			=> 'display_forums_modify_sql',
-			'core.display_forums_modify_template_vars'	=> 'display_forums_modify_template_vars',
-			'core.display_forums_modify_forum_rows'		=> 'display_forums_modify_forum_rows',
-			'core.generate_forum_nav'				=> 'generate_forum_nav',
-			'core.make_jumpbox_modify_tpl_ary'			=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
-			'core.pagination_generate_page_link'		=> 'pagination_generate_page_link',
-			'core.search_modify_tpl_ary'				=> 'search_modify_tpl_ary',
-			'core.viewforum_modify_topicrow'			=> 'viewforum_modify_topicrow',
-			'core.viewforum_get_topic_data'			=> 'viewforum_get_topic_data',
+			'core.append_sid'								=> 'append_sid',
+			'core.display_forums_modify_sql'				=> 'display_forums_modify_sql',
+			'core.display_forums_modify_template_vars'		=> 'display_forums_modify_template_vars',
+			'core.display_forums_modify_forum_rows'			=> 'display_forums_modify_forum_rows',
+			'core.generate_forum_nav'						=> 'generate_forum_nav',
+			'core.make_jumpbox_modify_tpl_ary'				=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
+			'core.pagination_generate_page_link'			=> 'pagination_generate_page_link',
+			'core.search_modify_tpl_ary'					=> 'search_modify_tpl_ary',
+			'core.viewforum_modify_topicrow'				=> 'viewforum_modify_topicrow',
+			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
 			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
-			'core.viewtopic_modify_page_title'			=> 'viewtopic_modify_page_title',
-			'core.viewtopic_modify_post_row'			=> 'viewtopic_modify_post_row',
-			'core.viewtopic_get_post_data'				=> 'viewtopic_get_post_data',
+			'core.viewtopic_before_f_read_check'			=> 'viewtopic_before_f_read_check',
+			'core.viewtopic_modify_page_title'				=> 'viewtopic_modify_page_title',
+			'core.viewtopic_modify_post_row'				=> 'viewtopic_modify_post_row',
+			'core.viewtopic_get_post_data'					=> 'viewtopic_get_post_data',
 		);
 	}
 
@@ -91,7 +96,7 @@ class listener implements EventSubscriberInterface
 	 */
 	public function append_sid($event)
 	{
-		if (preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
+		if ($this->in_viewtopic && preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
 		{
 			$url = $this->phpbb_root_path . 'viewtopic.' . $this->php_ext ;
 			$event['url'] = $url;
@@ -323,6 +328,11 @@ class listener implements EventSubscriberInterface
 		$this->forum_id = $event['topic_data']['forum_id'];
 		$this->topic_title = $event['topic_data']['topic_title'];
 		$this->topic_id = $event['topic_data']['topic_id'];
+	}
+
+	public function viewtopic_before_f_read_check()
+	{
+		$this->in_viewtopic = true;
 	}
 
 	/**
