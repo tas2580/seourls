@@ -18,11 +18,16 @@ class base
 	/** @var \phpbb\auth\auth */
 	protected $auth;
 
+	/** @var \phpbb\db\driver\driver */
+	protected $db;
+
 	/** @var \phpbb\config\config */
 	protected $config;
 
 	/** @var string phpbb_root_path */
 	protected $phpbb_root_path;
+
+	private $forum_urls;
 
 	/**
 	 * Constructor
@@ -32,11 +37,14 @@ class base
 	 * @param string						$phpbb_root_path		phpbb_root_path
 	 * @access public
 	 */
-	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, $phpbb_root_path)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\db\driver\driver_interface $db,  \phpbb\config\config $config, $phpbb_root_path)
 	{
 		$this->auth = $auth;
+		$this->db = $db;
 		$this->config = $config;
 		$this->phpbb_root_path = $phpbb_root_path;
+
+		$this->create_forum_urls();
 	}
 
 	/**
@@ -53,11 +61,12 @@ class base
 	 */
 	public function generate_topic_link($forum_id, $forum_name, $topic_id, $topic_title, $start = 0, $full = false)
 	{
+		$forum_url = isset($this->forum_urls[$forum_id]) ? $this->forum_urls[$forum_id] . '/' : $this->title_to_url($forum_name) . '-f' . $forum_id . '/';
 		if ($full)
 		{
-			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
+			return generate_board_url() . '/' . $forum_url . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
 		}
-		return $this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
+		return $this->phpbb_root_path . $forum_url . $this->title_to_url($topic_title) . '-t' . $topic_id . ($start ? '-s' . $start : '') . '.html';
 	}
 
 	/**
@@ -72,11 +81,13 @@ class base
 	 */
 	public function generate_forum_link($forum_id, $forum_name, $start = 0, $full = false)
 	{
+		$forum_url = isset($this->forum_urls[$forum_id]) ? $this->forum_urls[$forum_id] . '/' : $this->title_to_url($forum_name) . '-f' . $forum_id . '/';
+
 		if ($full)
 		{
-			return generate_board_url() . '/' . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : '');
+			return generate_board_url() . '/' . $forum_url . ($start ? 'index-s' . $start . '.html' : '');
 		}
-		return $this->phpbb_root_path . $this->title_to_url($forum_name) . '-f' . $forum_id . '/' . ($start ? 'index-s' . $start . '.html' : '');
+		return $this->phpbb_root_path . $forum_url . ($start ? 'index-s' . $start . '.html' : '');
 	}
 
 	/**
@@ -143,5 +154,18 @@ class base
 		}
 
 		return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
+	}
+
+	private function create_forum_urls()
+	{
+		$sql = 'SELECT forum_id, forum_url
+			FROM ' . FORUMS_TABLE . "
+			WHERE forum_url != ''";
+		$result = $this->db->sql_query($sql);
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$this->forum_urls[$row['forum_id']] = $row['forum_url'];
+		}
+		$this->db->sql_freeresult($result);
 	}
 }

@@ -79,7 +79,25 @@ class listener implements EventSubscriberInterface
 			'core.viewtopic_modify_page_title'			=> 'viewtopic_modify_page_title',
 			'core.viewtopic_modify_post_row'			=> 'viewtopic_modify_post_row',
 			'core.viewtopic_get_post_data'				=> 'viewtopic_get_post_data',
+
+			//ACP
+			'core.acp_manage_forums_display_form'		=> 'acp_manage_forums_display_form',
+			'core.acp_manage_forums_request_data'		=> 'acp_manage_forums_request_data',
 		);
+	}
+
+	public function acp_manage_forums_display_form($event)
+	{
+		$template_data = $event['template_data'];
+		$template_data['FORUM_URL'] = $event['forum_data']['forum_url'];
+		$event['template_data'] = $template_data;
+	}
+
+	public function acp_manage_forums_request_data($event)
+	{
+		$forum_data = $event['forum_data'];
+		$forum_data['forum_url'] = $this->request->variable('forum_url', '', true);
+		$event['forum_data'] = $forum_data;
 	}
 
 	/**

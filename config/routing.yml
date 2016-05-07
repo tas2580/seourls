@@ -1,0 +1,3 @@
+tas2580_seourls_forum:
+    pattern: /forum/
+    defaults: { _controller: tas2580.seourls.main:forum }
