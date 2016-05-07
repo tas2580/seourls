@@ -37,7 +37,7 @@ class base
 	 * @param string						$phpbb_root_path		phpbb_root_path
 	 * @access public
 	 */
-	public function __construct(\phpbb\auth\auth $auth, \phpbb\db\driver\driver_interface $db,  \phpbb\config\config $config, $phpbb_root_path)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\db\driver\driver_interface $db, \phpbb\config\config $config, $phpbb_root_path)
 	{
 		$this->auth = $auth;
 		$this->db = $db;
