@@ -44,9 +44,26 @@ class extensions implements EventSubscriberInterface
 			'rmcgirr83.topfive.modify_tpl_ary'			=> 'topfive_modify_tpl_ary',
 			'tas2580.sitemap_modify_before_output'		=> 'sitemap_modify_before_output',
 			'vse.similartopics.modify_topicrow'			=> 'similartopics_modify_topicrow',
+			'paybas.recenttopics.modify_tpl_ary'		=> 'recenttopics_modify_tpl_ary',
 		);
 	}
 
+	public function recenttopics_modify_tpl_ary($event)
+	{
+		$tpl_ary = $event['tpl_ary'];
+
+		$this->forum_title = $event['row']['forum_name'];
+		$this->forum_id = $event['row']['forum_id'];
+		$this->topic_title = $event['row']['topic_title'];
+		$this->topic_id = $event['row']['topic_id'];
+
+		$u_view_topic = $this->base->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
+		$tpl_ary['U_VIEW_FORUM'] =  append_sid($this->base->generate_forum_link($this->forum_id, $this->forum_title));
+		$tpl_ary['U_VIEW_TOPIC'] =  append_sid($u_view_topic);
+		$tpl_ary['U_LAST_POST'] =	append_sid($this->base->generate_lastpost_link($tpl_ary['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
+
+		$event['tpl_ary'] = $tpl_ary;
+	}
 
 	/**
 	 * Rewrite URLs in tas2580 Sitemap Extension
