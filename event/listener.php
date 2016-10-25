@@ -69,21 +69,22 @@ class listener implements EventSubscriberInterface
 	public static function getSubscribedEvents()
 	{
 		return array(
-			'core.append_sid'								=> 'append_sid',
-			'core.display_forums_modify_sql'				=> 'display_forums_modify_sql',
-			'core.display_forums_modify_template_vars'		=> 'display_forums_modify_template_vars',
-			'core.display_forums_modify_forum_rows'			=> 'display_forums_modify_forum_rows',
-			'core.generate_forum_nav'						=> 'generate_forum_nav',
-			'core.make_jumpbox_modify_tpl_ary'				=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
-			'core.pagination_generate_page_link'			=> 'pagination_generate_page_link',
-			'core.search_modify_tpl_ary'					=> 'search_modify_tpl_ary',
-			'core.viewforum_modify_topicrow'				=> 'viewforum_modify_topicrow',
-			'core.viewforum_get_topic_data'					=> 'viewforum_get_topic_data',
-			'core.viewtopic_assign_template_vars_before'	=> 'viewtopic_assign_template_vars_before',
-			'core.viewtopic_before_f_read_check'			=> 'viewtopic_before_f_read_check',
-			'core.viewtopic_modify_page_title'				=> 'viewtopic_modify_page_title',
-			'core.viewtopic_modify_post_row'				=> 'viewtopic_modify_post_row',
-			'core.viewtopic_get_post_data'					=> 'viewtopic_get_post_data',
+			'core.append_sid'										=> 'append_sid',
+			'core.display_forums_modify_sql'						=> 'display_forums_modify_sql',
+			'core.display_forums_modify_template_vars'				=> 'display_forums_modify_template_vars',
+			'core.display_forums_modify_forum_rows'					=> 'display_forums_modify_forum_rows',
+			'core.display_forums_modify_category_template_vars'		=> 'display_forums_modify_category_template_vars',
+			'core.generate_forum_nav'								=> 'generate_forum_nav',
+			'core.make_jumpbox_modify_tpl_ary'						=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
+			'core.pagination_generate_page_link'					=> 'pagination_generate_page_link',
+			'core.search_modify_tpl_ary'							=> 'search_modify_tpl_ary',
+			'core.viewforum_modify_topicrow'						=> 'viewforum_modify_topicrow',
+			'core.viewforum_get_topic_data'							=> 'viewforum_get_topic_data',
+			'core.viewtopic_assign_template_vars_before'			=> 'viewtopic_assign_template_vars_before',
+			'core.viewtopic_before_f_read_check'					=> 'viewtopic_before_f_read_check',
+			'core.viewtopic_modify_page_title'						=> 'viewtopic_modify_page_title',
+			'core.viewtopic_modify_post_row'						=> 'viewtopic_modify_post_row',
+			'core.viewtopic_get_post_data'							=> 'viewtopic_get_post_data',
 		);
 	}
 
@@ -174,6 +175,21 @@ class listener implements EventSubscriberInterface
 
 		$event['subforums_row'] = $subforums_row;
 		$event['forum_row'] = $forum_row;
+	}
+
+	/**
+	 * Rewrite the categorie links
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function display_forums_modify_category_template_vars($event)
+	{
+		$cat_row = $event['cat_row'];
+		$row = $event['row'];
+		$cat_row['U_VIEWFORUM'] = append_sid($this->base->generate_forum_link($row['forum_id'], $row['forum_name']));
+		$event['cat_row'] = $cat_row;
 	}
 
 	/**
