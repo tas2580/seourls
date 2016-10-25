@@ -16,7 +16,7 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>.
 After that go to the Admin panel of your forum and navigate in to Customise -> Extension Management -> Extensions. Search this extension in the list of extensions and click on Enable.
 
-###Rewriting
+###URL Rewriting
 The extension modifies the links that are outputed by the forum. So you need to rewrite the new links to working URLs.
 #### Apace
 Open your .htacces and find <code>RewriteEngine on</code> right after this add the following code:
