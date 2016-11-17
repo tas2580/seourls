@@ -18,7 +18,7 @@ After that go to the Admin panel of your forum and navigate in to Customise -> E
 
 ###URL Rewriting
 The extension modifies the links that are outputed by the forum. So you need to rewrite the new links to working URLs.
-#### Apace
+#### Apache
 Open your .htacces and find <code>RewriteEngine on</code> right after this add the following code:
 ```
 RewriteBase /
