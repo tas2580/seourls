@@ -27,9 +27,10 @@
 			"phpbb/phpbb": ">=3.1.10-RC1,<3.2.0@dev"
 		},
 		"version-check": {
-			"host": "phpbb-versionscheck.cf",
+			"host": "raw.githubusercontent.com",
 			"directory": "/tas2580/seourls/master",
-			"filename": "version-check.json"
+			"filename": "version-check.json",
+			"ssl": true
 		}
 	}
 }
