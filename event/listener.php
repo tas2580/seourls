@@ -99,8 +99,14 @@ class listener implements EventSubscriberInterface
 	{
 		if ($this->in_viewtopic && preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
 		{
-			$url = $this->phpbb_root_path . 'viewtopic.' . $this->php_ext ;
+			$url = '../viewtopic.' . $this->php_ext ;
 			$event['url'] = $url;
+		}
+		if (isset($event['params']['redirect']))
+		{
+			$params = $event['params'];
+			$params['redirect'] = str_replace('..', '.', $event['params']['redirect']);
+			$event['params'] = $params;
 		}
 	}
 
@@ -328,7 +334,6 @@ class listener implements EventSubscriberInterface
 		$this->template->assign_vars(array(
 			'U_VIEW_TOPIC'		=> append_sid($this->base->generate_topic_link($event['forum_id'] , $data['forum_name'], $event['topic_id'], $data['topic_title'], $event['start'])),
 			'U_VIEW_FORUM'		=> append_sid($this->base->generate_forum_link($event['forum_id'] , $data['forum_name'])),
-			'S_POLL_ACTION'		=> append_sid($this->base->generate_topic_link($event['forum_id'] , $data['forum_name'], $event['topic_id'], $data['topic_title'], $event['start'])),
 		));
 	}
 
