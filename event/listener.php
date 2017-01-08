@@ -334,6 +334,7 @@ class listener implements EventSubscriberInterface
 		$this->template->assign_vars(array(
 			'U_VIEW_TOPIC'		=> append_sid($this->base->generate_topic_link($event['forum_id'] , $data['forum_name'], $event['topic_id'], $data['topic_title'], $event['start'])),
 			'U_VIEW_FORUM'		=> append_sid($this->base->generate_forum_link($event['forum_id'] , $data['forum_name'])),
+			'S_POLL_ACTION'		=> append_sid($this->base->generate_topic_link($event['forum_id'] , $data['forum_name'], $event['topic_id'], $data['topic_title'], $event['start'])),
 		));
 	}
 
