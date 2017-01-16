@@ -178,6 +178,7 @@ class listener implements EventSubscriberInterface
 		$url = $this->base->generate_topic_link($event['row']['forum_id_last_post'], $event['row']['forum_name_last_post'], $event['row']['topic_id_last_post'], $event['row']['topic_title_last_post']);
 		$forum_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($replies, $url) . '#p' . $event['row']['forum_last_post_id']);
 		$forum_row['U_VIEWFORUM'] = append_sid($this->base->generate_forum_link($forum_row['FORUM_ID'], $forum_row['FORUM_NAME']));
+		$forum_row['U_NEWEST_POST'] = append_sid($this->base->generate_lastpost_link($replies, $url) . '#unread');
 
 		$event['subforums_row'] = $subforums_row;
 		$event['forum_row'] = $forum_row;
@@ -278,6 +279,7 @@ class listener implements EventSubscriberInterface
 		$tpl_ary['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($replies, $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
 		$tpl_ary['U_VIEW_TOPIC'] = append_sid($u_view_topic);
 		$tpl_ary['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']));
+		$tpl_ary['U_NEWEST_POST'] = append_sid($this->base->generate_lastpost_link($replies, $u_view_topic) . '#unread');
 
 		$event['tpl_ary'] = $tpl_ary;
 	}
@@ -301,6 +303,7 @@ class listener implements EventSubscriberInterface
 		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
 		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($this->forum_id, $this->forum_title));
 		$topic_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
+		$topic_row['U_NEWEST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#unread');
 
 		$event['topic_row'] = $topic_row;
 	}
