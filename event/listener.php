@@ -76,6 +76,7 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_category_template_vars'		=> 'display_forums_modify_category_template_vars',
 			'core.generate_forum_nav'								=> 'generate_forum_nav',
 			'core.make_jumpbox_modify_tpl_ary'						=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
+			'core.memberlist_view_profile'							=> 'memberlist_view_profile',
 			'core.pagination_generate_page_link'					=> 'pagination_generate_page_link',
 			'core.search_modify_tpl_ary'							=> 'search_modify_tpl_ary',
 			'core.viewforum_modify_topicrow'						=> 'viewforum_modify_topicrow',
@@ -233,6 +234,22 @@ class listener implements EventSubscriberInterface
 		}
 
 		$event['tpl_ary'] = $tpl_ary;
+	}
+
+	/**
+	 * Rewrite links to most active forum and topic on profile page
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function memberlist_view_profile($event)
+	{
+		$data = $event['member'];
+		$this->template->assign_vars(array(
+			'U_ACTIVE_FORUM' => $this->base->generate_forum_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], 0, true),
+			'U_ACTIVE_TOPIC' => $this->base->generate_topic_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], $data['active_t_row']['topic_id'], $data['active_t_row']['topic_title'], 0, true),
+		));
 	}
 
 	/**
