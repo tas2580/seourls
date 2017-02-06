@@ -113,15 +113,16 @@ class base
 	 */
 	public static function title_to_url($title)
 	{
-		$url = strtolower(censor_text(utf8_normalize_nfc(strip_tags($title))));
+		$url = strtolower(censor_text(utf8_normalize_nfc(html_entity_decode(strip_tags($title)))));
 
 		// Let's replace
 		$url_search = array(' ', 'í', 'ý', 'ß', 'ö', 'ô', 'ó', 'ò', 'ä', 'â', 'à', 'á', 'é', 'è', 'ü', 'ú', 'ù', 'ñ', 'ß', '²', '³', '@', '€', '$');
 		$url_replace = array('-', 'i', 'y', 's', 'oe', 'o', 'o', 'o', 'ae', 'a', 'a', 'a', 'e', 'e', 'ue', 'u', 'u', 'n', 'ss', '2', '3', 'at', 'eur', 'usd');
 		$url = str_replace($url_search, $url_replace, $url);
-		$url_search = array('&amp;', '&quot;', '&', '"', "'", '¸', '`', '(', ')', '[', ']', '<', '>', '{', '}', '.', ':', ',', ';', '!', '?', '+', '*', '/', '=', 'µ', '#', '~', '"', '§', '%', '|', '°', '^', '„', '“');
-		$url = str_replace($url_search, '-', $url);
-		$url = str_replace(array('----', '---', '--'), '-', $url);
+
+		$url = preg_replace('/[^\w\d]/', '-', $url);
+		$url = preg_replace('/[-]{2,}/', '-', $url);
+		$url = trim($url, '-');
 
 		$url = substr($url, 0, 50); // Max length for a title in URL
 		return urlencode($url);

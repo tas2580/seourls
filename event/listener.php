@@ -76,6 +76,7 @@ class listener implements EventSubscriberInterface
 			'core.display_forums_modify_category_template_vars'		=> 'display_forums_modify_category_template_vars',
 			'core.generate_forum_nav'								=> 'generate_forum_nav',
 			'core.make_jumpbox_modify_tpl_ary'						=> 'make_jumpbox_modify_tpl_ary',				// Not in phpBB
+			'core.memberlist_view_profile'							=> 'memberlist_view_profile',
 			'core.pagination_generate_page_link'					=> 'pagination_generate_page_link',
 			'core.search_modify_tpl_ary'							=> 'search_modify_tpl_ary',
 			'core.viewforum_modify_topicrow'						=> 'viewforum_modify_topicrow',
@@ -236,6 +237,22 @@ class listener implements EventSubscriberInterface
 	}
 
 	/**
+	 * Rewrite links to most active forum and topic on profile page
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function memberlist_view_profile($event)
+	{
+		$data = $event['member'];
+		$this->template->assign_vars(array(
+			'U_ACTIVE_FORUM' => $this->base->generate_forum_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], 0, true),
+			'U_ACTIVE_TOPIC' => $this->base->generate_topic_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], $data['active_t_row']['topic_id'], $data['active_t_row']['topic_title'], 0, true),
+		));
+	}
+
+	/**
 	 * Rewrite pagination links
 	 *
 	 * @param	object	$event	The event object
@@ -253,13 +270,13 @@ class listener implements EventSubscriberInterface
 		}
 
 		$start = (($event['on_page'] - 1) * $event['per_page']);
-		if (!empty($this->topic_title))
+		if (!empty($this->topic_data) && isset($param['f']) && isset($param['t']))
 		{
-			$event['generate_page_link_override'] = append_sid($this->base->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title, $start));
+			$event['generate_page_link_override'] = append_sid($this->base->generate_topic_link($this->topic_data['forum_id'], $this->topic_data['forum_name'], $this->topic_data['topic_id'], $this->topic_data['topic_title'], $start));
 		}
-		else if (!empty($this->forum_title))
+		else if (!empty($this->forum_data) && isset($param['f']))
 		{
-			$event['generate_page_link_override'] = append_sid($this->base->generate_forum_link($this->forum_id, $this->forum_title, $start));
+			$event['generate_page_link_override'] = append_sid($this->base->generate_forum_link($this->forum_data['forum_id'], $this->forum_data['forum_name'], $start));
 		}
 	}
 
@@ -293,15 +310,19 @@ class listener implements EventSubscriberInterface
 	 */
 	public function viewforum_modify_topicrow($event)
 	{
-		$topic_row = $event['topic_row'];
-		$this->forum_title = $topic_row['FORUM_NAME'];
-		$this->forum_id = $topic_row['FORUM_ID'];
-		$this->topic_title = $topic_row['TOPIC_TITLE'];
-		$this->topic_id = $topic_row['TOPIC_ID'];
+		// assign to be used in pagination_generate_page_link
+		$this->topic_data = array(
+			'forum_id' => $event['topic_row']['FORUM_ID'],
+			'forum_name' => $event['topic_row']['FORUM_NAME'],
+			'topic_id' => $event['topic_row']['TOPIC_ID'],
+			'topic_title' => $event['topic_row']['TOPIC_TITLE']
+		);
 
-		$u_view_topic = $this->base->generate_topic_link($this->forum_id, $this->forum_title, $this->topic_id, $this->topic_title);
+		$topic_row = $event['topic_row'];
+
+		$u_view_topic = $this->base->generate_topic_link($topic_row['FORUM_ID'], $topic_row['FORUM_TITLE'], $topic_row['TOPIC_ID'], $topic_row['TOPIC_TITLE']);
 		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
-		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($this->forum_id, $this->forum_title));
+		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($topic_row['FORUM_ID'], $topic_row['FORUM_NAME']));
 		$topic_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
 		$topic_row['U_NEWEST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#unread');
 
@@ -317,9 +338,15 @@ class listener implements EventSubscriberInterface
 	 */
 	public function viewforum_get_topic_data($event)
 	{
+		// assign to be used in pagination_generate_page_link
+		$this->forum_data = array(
+			'forum_id' => $event['forum_data']['forum_id'],
+			'forum_name' => $event['forum_data']['forum_name']
+		);
+
 		$start = $this->request->variable('start', 0);
 		$this->template->assign_vars(array(
-			'U_VIEW_FORUM'	=> append_sid($this->base->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start)),
+			'U_VIEW_FORUM'		=> append_sid($this->base->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start)),
 			'U_CANONICAL'		=> $this->base->generate_forum_link($event['forum_data']['forum_id'], $event['forum_data']['forum_name'], $start, true),
 		));
 	}
@@ -350,10 +377,13 @@ class listener implements EventSubscriberInterface
 	 */
 	public function viewtopic_assign_template_vars_before($event)
 	{
-		$this->forum_title = $event['topic_data']['forum_name'];
-		$this->forum_id = $event['topic_data']['forum_id'];
-		$this->topic_title = $event['topic_data']['topic_title'];
-		$this->topic_id = $event['topic_data']['topic_id'];
+		// assign to be used in pagination_generate_page_link
+		$this->topic_data = array(
+			'forum_id' => $event['topic_data']['forum_id'],
+			'forum_name' => $event['topic_data']['forum_name'],
+			'topic_id' => $event['topic_data']['topic_id'],
+			'topic_title' => $event['topic_data']['topic_title']
+		);
 	}
 
 	public function viewtopic_before_f_read_check()
