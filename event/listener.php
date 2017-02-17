@@ -320,7 +320,7 @@ class listener implements EventSubscriberInterface
 
 		$topic_row = $event['topic_row'];
 
-		$u_view_topic = $this->base->generate_topic_link($topic_row['FORUM_ID'], $topic_row['FORUM_TITLE'], $topic_row['TOPIC_ID'], $topic_row['TOPIC_TITLE']);
+		$u_view_topic = $this->base->generate_topic_link($topic_row['FORUM_ID'], $topic_row['FORUM_NAME'], $topic_row['TOPIC_ID'], $topic_row['TOPIC_TITLE']);
 		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
 		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($topic_row['FORUM_ID'], $topic_row['FORUM_NAME']));
 		$topic_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
