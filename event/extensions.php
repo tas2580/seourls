@@ -55,7 +55,7 @@ class extensions implements EventSubscriberInterface
 		$tpl_ary['U_VIEW_TOPIC'] = append_sid($u_view_topic);
 		$tpl_ary['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($tpl_ary['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
 		$tpl_ary['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($event['row']['forum_id'], $event['row']['forum_name']));
-		$tpl_ary['U_NEWEST_POST'] = append_sid($this->base->generate_lastpost_link($tpl_ary['REPLIES'], $u_view_topic) . '#unread');
+		$tpl_ary['U_NEWEST_POST'] = $u_view_topic . '?view=unread#unread';
 
 		$event['tpl_ary'] = $tpl_ary;
 	}
