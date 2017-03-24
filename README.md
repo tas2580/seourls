@@ -35,11 +35,11 @@ If your forum is under domain.tld/forum you also need to change <code>RewriteBas
 Open your `/etc/nginx/nginx.conf` and add the following code to your VHost configuration.
 ```
 location / {
-	rewrite ^/(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html /viewtopic.php?f=$2&t=$4&start=$5&$query_string break;
-	rewrite ^/(.*)-f([0-9]*)/(.*)-t([0-9]*).html /viewtopic.php?f=$2&t=$4&$query_string break;
-	rewrite ^/(.*)-f([0-9]*)/index-s([0-9]*).html /viewforum.php?f=$2&start=$3&$query_string break;
-	rewrite ^/(.*)-f([0-9]*)/ /viewforum.php?f=$2&$query_string break;
-	rewrite ^/(.*)-f([0-9]*) /viewforum.php?f=$2&$query_string break;
+	rewrite ^/(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html /viewtopic.php?f=$2&t=$4&start=$5&$query_string last;
+	rewrite ^/(.*)-f([0-9]*)/(.*)-t([0-9]*).html /viewtopic.php?f=$2&t=$4&$query_string last;
+	rewrite ^/(.*)-f([0-9]*)/index-s([0-9]*).html /viewforum.php?f=$2&start=$3&$query_string last;
+	rewrite ^/(.*)-f([0-9]*)/ /viewforum.php?f=$2&$query_string last;
+	rewrite ^/(.*)-f([0-9]*) /viewforum.php?f=$2&$query_string last;
 }
 ```
 
