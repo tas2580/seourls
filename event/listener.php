@@ -259,6 +259,10 @@ class listener implements EventSubscriberInterface
 	 */
 	public function pagination_generate_page_link($event)
 	{
+		if(!is_string($event['base_url']))
+		{
+			return;
+		}
 		// If we have a sort key we do not rewrite the URL
 		$query = str_replace('&amp;', '&', parse_url($event['base_url'], PHP_URL_QUERY));
 		parse_str($query, $param);
