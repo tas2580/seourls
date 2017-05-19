@@ -34,8 +34,6 @@ class listener implements EventSubscriberInterface
 	/** @var string php_ext */
 	protected $php_ext;
 
-	private $in_viewforum;
-
 	/**
 	 * Constructor
 	 *
