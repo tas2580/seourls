@@ -15,64 +15,8 @@ To install this extension download it from here and upload the files in your for
 After that go to the Admin panel of your forum and navigate in to Customise -> Extension Management -> Extensions. Search this extension in the list of extensions and click on Enable.
 
 ### URL Rewriting
-The extension modifies the links that are outputed by the forum. So you need to rewrite the new links to working URLs.
+See: https://github.com/tas2580/seourls/wiki/Webserver-configuration
 
-#### Apache
-Open your .htacces and find <code>RewriteEngine on</code> right after this add the following code:
-```
-RewriteBase /
-
-RewriteRule ^(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html viewtopic.php?f=$2&t=$4&start=$5&%{QUERY_STRING} [L]
-RewriteRule ^(.*)-f([0-9]*)/(.*)-t([0-9]*).html viewtopic.php?f=$2&t=$4&%{QUERY_STRING} [L]
-RewriteRule ^(.*)-f([0-9]*)/index-s([0-9]*).html viewforum.php?f=$2&start=$3&%{QUERY_STRING} [L]
-RewriteRule ^(.*)-f([0-9]*)/ viewforum.php?f=$2&%{QUERY_STRING} [L]
-RewriteRule ^(.*)-f([0-9]*) viewforum.php?f=$2&%{QUERY_STRING} [L]
-```
-If your forum is under domain.tld/forum you also need to change <code>RewriteBase /</code> to <code>RewriteBase /forum</code>
-
-#### ngnix
-Open your `/etc/nginx/nginx.conf` and add the following code to your VHost configuration.
-```
-location / {
-	rewrite ^/(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html /viewtopic.php?f=$2&t=$4&start=$5&$query_string last;
-	rewrite ^/(.*)-f([0-9]*)/(.*)-t([0-9]*).html /viewtopic.php?f=$2&t=$4&$query_string last;
-	rewrite ^/(.*)-f([0-9]*)/index-s([0-9]*).html /viewforum.php?f=$2&start=$3&$query_string last;
-	rewrite ^/(.*)-f([0-9]*)/ /viewforum.php?f=$2&$query_string last;
-	rewrite ^/(.*)-f([0-9]*) /viewforum.php?f=$2&$query_string last;
-}
-```
-
-#### Lighttpd
-Open your `/etc/lighttpd/lighttpd.conf` and add the following code to your VHost configuration.
-```
-url.rewrite-once = (
-	"/(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html(\?(.*))?"	=> "/viewtopic.php?f=$2&t=$4&start=$5&$7",
-	"/(.*)-f([0-9]*)/(.*)-t([0-9]*).html(\?(.*))?"				=> "/viewtopic.php?f=$2&t=$4&$6",
-	"/(.*)-f([0-9]*)/index-s([0-9]*).html(\?(.*))?"				=> "/viewforum.php?f=$2&start=$3&$5",
-	"/(.*)-f([0-9]*)/(\?(.*))?"									=> "/viewforum.php?f=$2&$4",
-)
-```
-
-#### Caddy Webserver
-Open your `Caddyfile` and add the following code to your VHost configuration.
-```
-rewrite {
-		regexp /(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html(\?(.*))?
-		to /viewtopic.php?f={2}&t={4}&start={5}&{7}
-}
-rewrite {
-		regexp /(.*)-f([0-9]*)/(.*)-t([0-9]*).html(\?(.*))?
-		to /viewtopic.php?f={2}&t={4}&{6}
-}
-rewrite {
-		regexp /(.*)-f([0-9]*)/index-s([0-9]*).html(\?(.*))?
-		to /viewforum.php?f={2}&start=${3}&{5}
-}
-rewrite {
-		regexp /(.*)-f([0-9]*)/(\?(.*))?
-		to /viewforum.php?f={2}&{4}
-}
-```
 ## SUPPORT
 You can get support for this extension on <a href="https://www.phpbb.com/community/viewtopic.php?f=456&t=2288486">phpbb.com</a>
 or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=233380">phpbb.de</a>. For more informations look at
