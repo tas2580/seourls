@@ -79,6 +79,7 @@ class listener implements EventSubscriberInterface
 			'core.search_modify_tpl_ary'							=> 'search_modify_tpl_ary',
 			'core.viewforum_modify_topicrow'						=> 'viewforum_modify_topicrow',
 			'core.viewforum_get_topic_data'							=> 'viewforum_get_topic_data',
+			'core.viewforum_get_shadowtopic_data'					=> 'viewforum_get_shadowtopic_data',
 			'core.viewtopic_assign_template_vars_before'			=> 'viewtopic_assign_template_vars_before',
 			'core.viewtopic_before_f_read_check'					=> 'viewtopic_before_f_read_check',
 			'core.viewtopic_modify_page_title'						=> 'viewtopic_modify_page_title',
@@ -312,23 +313,39 @@ class listener implements EventSubscriberInterface
 	 */
 	public function viewforum_modify_topicrow($event)
 	{
+		$topic_row = $event['topic_row'];
+		$row = $event['row'];
+
 		// assign to be used in pagination_generate_page_link
 		$this->topic_data = array(
-			'forum_id' => $event['topic_row']['FORUM_ID'],
-			'forum_name' => $event['topic_row']['FORUM_NAME'],
-			'topic_id' => $event['topic_row']['TOPIC_ID'],
-			'topic_title' => $event['topic_row']['TOPIC_TITLE']
+			'forum_id' => $row['forum_id'],
+			'forum_name' => $topic_row['FORUM_NAME'],
+			'topic_id' => $row['topic_id'],
+			'topic_title' => $row['topic_title']
 		);
 
-		$topic_row = $event['topic_row'];
-
-		$u_view_topic = $this->base->generate_topic_link($topic_row['FORUM_ID'], $topic_row['FORUM_NAME'], $topic_row['TOPIC_ID'], $topic_row['TOPIC_TITLE']);
+		$u_view_topic = $this->base->generate_topic_link($row['forum_id'], $topic_row['FORUM_NAME'], $row['topic_id'], $row['topic_title']);
 		$topic_row['U_VIEW_TOPIC'] = append_sid($u_view_topic);
-		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($topic_row['FORUM_ID'], $topic_row['FORUM_NAME']));
-		$topic_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $event['row']['topic_last_post_id']);
+		$topic_row['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($row['forum_id'], $topic_row['FORUM_NAME']));
+		$topic_row['U_LAST_POST'] = append_sid($this->base->generate_lastpost_link($event['topic_row']['REPLIES'], $u_view_topic) . '#p' . $row['topic_last_post_id']);
 		$topic_row['U_NEWEST_POST'] = $u_view_topic . '?view=unread#unread';
 
 		$event['topic_row'] = $topic_row;
+	}
+
+	/**
+	 * Get forum_name for shaddow topics
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function viewforum_get_shadowtopic_data($event)
+	{
+		$sql_array = $event['sql_array'];
+		$sql_array['SELECT'] .= ', f.forum_name';
+		$sql_array['LEFT_JOIN'][] = array('FROM' => array(FORUMS_TABLE => 'f'), 'ON' => 'f.forum_id = t.forum_id');
+		$event['sql_array'] = $sql_array;
 	}
 
 	/**
