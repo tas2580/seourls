@@ -85,6 +85,7 @@ class listener implements EventSubscriberInterface
 			'core.viewtopic_modify_page_title'						=> 'viewtopic_modify_page_title',
 			'core.viewtopic_modify_post_row'						=> 'viewtopic_modify_post_row',
 			'core.viewtopic_get_post_data'							=> 'viewtopic_get_post_data',
+			'core.parse_attachments_modify_template_data'			=> 'parse_attachments_modify_template_data',
 		);
 	}
 
@@ -440,5 +441,26 @@ class listener implements EventSubscriberInterface
 		$data = $event['topic_data'];
 		$row['U_MINI_POST'] = append_sid($this->base->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start) . '#p' . $event['row']['post_id']);
 		$event['post_row'] = $row;
+	}
+
+	/**
+	 * Correct path of upload icons
+	 *
+	 * @param	object	$event	The event object
+	 * @return	null
+	 * @access	public
+	 */
+	public function parse_attachments_modify_template_data($event)
+	{
+		if (isset($event['extensions'][$event['attachment']['extension']]))
+		{
+			if ($event['extensions'][$event['attachment']['extension']]['upload_icon'])
+			{
+				$block_array = $event['block_array'];
+				$upload_icon = '<img src="' . generate_board_url() . '/' . $this->base->config['upload_icons_path'] . '/' . trim($event['extensions'][$event['attachment']['extension']]['upload_icon']) . '" alt="" />';
+				$block_array['UPLOAD_ICON'] = $upload_icon;
+				$event['block_array'] = $block_array;
+			}
+		}
 	}
 }

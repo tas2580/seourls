@@ -19,7 +19,7 @@ class base
 	protected $auth;
 
 	/** @var \phpbb\config\config */
-	protected $config;
+	public $config;
 
 	/** @var string phpbb_root_path */
 	protected $phpbb_root_path;
