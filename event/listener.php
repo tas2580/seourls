@@ -107,7 +107,7 @@ class listener implements EventSubscriberInterface
 		{
 			$params = $event['params'];
 			$params['redirect'] = str_replace('..', '.', $event['params']['redirect']);
-			$event['params'] = $params;
+		//	$event['params'] = $params;
 		}
 	}
 
@@ -439,7 +439,9 @@ class listener implements EventSubscriberInterface
 		$row = $event['post_row'];
 		$start = $this->request->variable('start', 0);
 		$data = $event['topic_data'];
-		$row['U_MINI_POST'] = append_sid($this->base->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start) . '#p' . $event['row']['post_id']);
+		$viewtopic_url = $this->base->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start) . '#p' . $event['row']['post_id'];
+		$row['U_MINI_POST'] = append_sid($viewtopic_url);
+		$row['U_APPROVE_ACTION'] = append_sid(generate_board_url() . '/' . "mcp.{$this->php_ext}", "i=queue&amp;p={$data['post_id']}&amp;f={$data['forum_id']}&amp;redirect=" . urlencode(str_replace('&amp;', '&', $viewtopic_url)));
 		$event['post_row'] = $row;
 	}
 
