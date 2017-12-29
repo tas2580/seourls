@@ -107,7 +107,7 @@ class listener implements EventSubscriberInterface
 		{
 			$params = $event['params'];
 			$params['redirect'] = str_replace('..', '.', $event['params']['redirect']);
-		//	$event['params'] = $params;
+			$event['params'] = $params;
 		}
 	}
 
