@@ -119,12 +119,14 @@ class base
 		$url_search = array(
 		' ', 'í', 'ý', 'ß', 'ö', 'ô', 'ó', 'ò', 'ä', 'â', 'à', 'á', 'é', 'è', 'ü', 'ú', 'ù', 'ñ', 'ß', '²', '³', '@', '€', '$',
 		'ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ż', 'ź', // polish letters
-		'ç', 'ê', 'ë', 'ê', 'î', 'ï', 'œ', 'û' // french letters
+		'ç', 'ê', 'ë', 'ê', 'î', 'ï', 'œ', 'û', // french letters
+		'ř', 'š', 'ž', 'ť', 'č', 'ý', 'ů', 'ě', 'ď', 'ň' //czech letters 
 		);
 		$url_replace = array(
 		'-', 'i', 'y', 's', 'oe', 'o', 'o', 'o', 'ae', 'a', 'a', 'a', 'e', 'e', 'ue', 'u', 'u', 'n', 'ss', '2', '3', 'at', 'eur', 'usd',
 		'a', 'c', 'e', 'l', 'n', 'o', 's', 'z', 'z', // polish letters
-		'c', 'e', 'e', 'e', 'i', 'i', 'oe', 'u' // french letters
+		'c', 'e', 'e', 'e', 'i', 'i', 'oe', 'u', // french letters
+		'r', 's', 'z', 't', 'c', 'y', 'u', 'e', 'd', 'n' //czech letters
 		);
 		$url = str_replace($url_search, $url_replace, $url);
 
