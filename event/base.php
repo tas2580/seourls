@@ -113,7 +113,7 @@ class base
 	 */
 	public static function title_to_url($title)
 	{
-		$url = strtolower(censor_text(utf8_normalize_nfc(html_entity_decode(strip_tags($title)))));
+		$url = mb_strtolower(censor_text(utf8_normalize_nfc(html_entity_decode(strip_tags($title)))));
 
 		// Let's replace
 		$url_search = array(
