@@ -1,6 +1,6 @@
 # phpBB SEO URLs
 
-This is an extension for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb">phpBB 3.1.x</a> to use this extension.
+This is an extension for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb">phpBB</a> 3.1.x or 3.2.x to use this extension.
 
 ## DESCRIPTION
 Changes the URLs of forums and topics too more SEO friendly URLs with the title of the forums and topics in it. This
