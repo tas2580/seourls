@@ -28,5 +28,5 @@ or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=23
 ## Automated Testing
 We use automated unit tests to prevent regressions. Check out our travis build below:
 
-[![Build Status](https://travis-ci.org/tas2580/seourls.svg?branch=master)](https://travis-ci.org/seourls)
+[![Build Status](https://travis-ci.org/tas2580/seourls.svg?branch=master)](https://travis-ci.org/tas2580/seourls)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/tas2580/seourls/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/tas2580/seourls/?branch=master)
