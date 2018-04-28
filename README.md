@@ -1,6 +1,6 @@
 # phpBB SEO URLs
 
-This is an modification for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb">phpBB</a> 3.0.x to use this modification.
+This is an modification for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb/tree/3.0.x">phpBB 3.0.x</a> to use this modification.
 
 ## DESCRIPTION
 Changes the URLs of forums and topics too more SEO friendly URLs with the title of the forums and topics in it. This
