@@ -1,0 +1,700 @@
+#################################################################
+## Mod Title:    SEO-phpBB Keyword in URL
+## Mod Version:  1.0.0
+## Author:       Tobi (tobi@seo-phpbb.org)
+## Description:  This MOD makes your forum more search-engine friendly.
+##               
+##
+## Files To Edit:
+##			index.php
+##			search.php
+##			viewforum.php
+##			viewtopic.php
+##			includes/page_header.php
+##			includes/sessions.php
+##
+##
+## Installation Level:  medium!
+## Installation Time:   10-15 Minutes
+## Files To Edit:       6
+## Included Files:      1
+#################################################################
+## Security Disclaimer: This MOD Cannot Be Posted To Or Added At Any Non-Official phpBB Sites
+#################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+#################################################################
+
+#
+#-----[ OPEN ]-----------------------------------
+#
+
+index.php
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+								$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+								if ( $userdata['session_logged_in'] ) {
+									$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';
+								} else {
+									$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : $forum_data[$j]['username'];
+								}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+		default:
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+				FROM (( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )
+				LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id )
+				ORDER BY f.cat_id, f.forum_order";
+			break;
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+		default:
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, t.topic_title, t.topic_last_post_id " .
+				" FROM ((( " . FORUMS_TABLE . " f " .
+				" LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )" .
+				" LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id ) " .
+				" LEFT JOIN " . TOPICS_TABLE . " t ON t.topic_last_post_id = p.post_id ) " .
+				" ORDER BY f.cat_id, f.forum_order";
+			break;
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $row['username'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+		if ( $userdata['session_logged_in'] ) {
+			$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $row['username'] . '</a>';
+		} else {
+			$forum_moderators[$row['forum_id']][] = $row['username'];
+		}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $row['group_name'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+		if ( $userdata['session_logged_in'] ) {
+			$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $row['group_name'] . '</a>';
+		} else {
+			$forum_moderators[$row['forum_id']][] = $row['group_name'];
+		}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+								$last_post_time = create_date($board_config['default_dateformat'], $forum_data[$j]['post_time'], $board_config['board_timezone']);
+
+								$last_post = $last_post_time . '<br />';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+								$last_post_time = create_date($board_config['default_dateformat'], $forum_data[$j]['post_time'], $board_config['board_timezone']);
+								$topic_title = $forum_data[$j]['topic_title'];
+								if (strlen($topic_title)>27) {
+									$topic_title = substr($topic_title,0,24) . '...';
+								}
+								$last_post = (($board_config['last_topic_title']) ? $topic_title : '');
+								$last_post = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $forum_data[$j]['forum_last_post_id']) . '#' . $forum_data[$j]['forum_last_post_id'] . '" title="' . $data['tree.topic_title'] . '">' .$topic_title. '</a><br />';
+								$last_post .= $last_post_time . '<br />';
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	$template->assign_vars(array(
+		'TOTAL_POSTS' => sprintf($l_total_post_s, $total_posts),
+
+#
+#-----[ BEFORE ADD ]-----------------------------
+#
+
+	if ( $userdata['session_logged_in'] ) {
+		$NEWEST_USER=sprintf($lang['Newest_user'], '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$newest_uid") . '">', $newest_user, '</a>');
+	} else {
+		$NEWEST_USER=sprintf($lang['Newest_user'], '', $newest_user,'');
+	}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+		'NEWEST_USER' => sprintf($lang['Newest_user'], '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$newest_uid") . '">', $newest_user, '</a>'), 
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+		'NEWEST_USER' => $NEWEST_USER,
+
+
+#
+#-----[ OPEN ]-----------------------------------
+#
+
+search.php
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+				$topic_author = ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $searchset[$i]['user_id']) . '">' : '';
+				$topic_author .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $searchset[$i]['username'] : ( ( $searchset[$i]['post_username'] != '' ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+
+				$topic_author .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+				if ( $userdata['session_logged_in'] ) {
+					$topic_author = ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $searchset[$i]['user_id']) . '">' : '';
+					$topic_author .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $searchset[$i]['username'] : ( ( $searchset[$i]['post_username'] != '' ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+					$topic_author .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+				} else {
+					$topic_author = ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $searchset[$i]['username'] : ( ( $searchset[$i]['post_username'] != '' ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+				}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+				$last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $searchset[$i]['id2']) . '">' . $searchset[$i]['user2'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+				if ( $userdata['session_logged_in'] ) {
+					$last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $searchset[$i]['id2']) . '">' . $searchset[$i]['user2'] . '</a>';
+				} else {
+					$last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : $searchset[$i]['user2'];
+				}
+
+
+#
+#-----[ OPEN ]-----------------------------------
+#
+
+viewforum.php
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER ADD ]------------------------------
+#
+
+$vforum="1";
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+		$topic_author = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+		$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+
+		$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+		if ( $userdata['session_logged_in'] ) {
+			$topic_author = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+		
+			$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+		
+			$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+		} else {
+			$topic_author = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+		}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+		$last_post_author = ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $topic_rowset[$i]['id2']) . '">' . $topic_rowset[$i]['user2'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+		if ( $userdata['session_logged_in'] ) {
+			$last_post_author = ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['id2']) . '">' . $topic_rowset[$i]['user2'] . '</a>';
+		} else {
+			$last_post_author = ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : $topic_rowset[$i]['user2'] ;
+		}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+
+$page_title = $lang['View_forum'] . ' - ' . $forum_row['forum_name'];
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+$page_title = $forum_row['forum_name'];
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	$moderators[] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $row['username'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+	if ( $userdata['session_logged_in'] ) {
+		$moderators[] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $row['username'] . '</a>';
+	} else {
+		$moderators[] = $row['username'];
+	}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	$moderators[] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $row['group_name'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+	if ( $userdata['session_logged_in'] ) {
+		$moderators[] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $row['group_name'] . '</a>';
+	} else {
+		$moderators[] = $row['group_name'];
+	}
+
+#
+#-----[ OPEN ]-----------------------------------
+#
+
+viewtopic.php
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER ADD ]------------------------------
+#
+
+$vtopic="1";
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+$page_title = $lang['View_topic'] .' - ' . $topic_title;
+
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+$page_title = $topic_title;
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+$view_prev_topic_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=previous");
+$view_next_topic_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=next");
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+$sql = "SELECT t.topic_id
+	FROM " . TOPICS_TABLE . " t, " . TOPICS_TABLE . " t2
+	WHERE
+		t2.topic_id = $topic_id
+		AND t.forum_id = t2.forum_id
+		AND t.topic_last_post_id > t2.topic_last_post_id
+	ORDER BY t.topic_last_post_id ASC
+	LIMIT 1";
+
+if ( !($result = $db->sql_query($sql)) || $db->sql_numrows($result) != 1 )
+{
+	$nextTopicText = $lang['No_newer_topics'];
+	$view_next_topic_url = append_sid("viewtopic.php?t=$topic_id");
+}
+else
+{	
+	$row = $db->sql_fetchrow($result);
+	$view_next_topic_url  = append_sid("viewtopic.php?t=" . $row['topic_id'] );
+}
+$db->sql_freeresult($result);
+
+$sql = "SELECT t.topic_id
+	FROM " . TOPICS_TABLE . " t, " . TOPICS_TABLE . " t2
+	WHERE
+		t2.topic_id = $topic_id
+		AND t.forum_id = t2.forum_id
+		AND t.topic_last_post_id < t2.topic_last_post_id
+	ORDER BY t.topic_last_post_id DESC
+	LIMIT 1";
+if ( !($result = $db->sql_query($sql)) || $db->sql_numrows($result) != 1 )
+{
+	$prevTopicText = $lang['No_older_topics'];
+	$view_prev_topic_url = append_sid("viewtopic.php?t=$topic_id");
+}
+else
+{	
+	$row = $db->sql_fetchrow($result);
+	$view_prev_topic_url = append_sid("viewtopic.php?t=" . $row['topic_id'] );
+}
+$db->sql_freeresult($result);
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	$temp_url = append_sid("posting.$phpEx?mode=quote&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id']);
+	$quote_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_quote'] . '" alt="' . $lang['Reply_with_quote'] . '" title="' . $lang['Reply_with_quote'] . '" border="0" /></a>';
+	$quote = '<a href="' . $temp_url . '">' . $lang['Reply_with_quote'] . '</a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+	if ( $userdata['session_logged_in'] )
+	{
+		$temp_url = append_sid("posting.$phpEx?mode=quote&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id']);
+		$quote_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_quote'] . '" alt="' . $lang['Reply_with_quote'] . '" title="' . $lang['Reply_with_quote'] . '" border="0" /></a>';
+		$quote = '<a href="' . $temp_url . '">' . $lang['Reply_with_quote'] . '</a>';
+	} else {
+		$quote_img = '';
+		$quote = '';
+	}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	'U_VIEW_TOPIC' => append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;start=$start&amp;postdays=$post_days&amp;postorder=$post_order&amp;highlight=$highlight"),
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+	'U_VIEW_TOPIC' => append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id"),
+
+#
+#-----[ OPEN ]-----------------------------------
+#
+
+includes/page_header.php
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+define('HEADER_INC', TRUE);
+
+#
+#-----[ AFTER ADD ]------------------------------
+#
+
+if ($vtopic AND $HTTP_GET_VARS['t']) {
+	$keyurl=$page_title;
+	$search = array( '�', '�', '�', '�', '�', '�', '�', '�', '�', ' ', ".", "'", '#', '&', '/','�','+','�','�','$','%','?','!',':',';','[',']',',');
+	$replace = array( 'oe', 'ae', 'ue', 'oe', 'ae', 'a', 'e', 'e', 'ue', '-', "", "", '', '-und-', '-','ss','','euro','','','','','','','','','','');
+	$keyurl=str_replace($search, $replace, "$keyurl");
+	$keyurl = strtolower($keyurl);
+	$seite = $_SERVER['REQUEST_URI'];
+	if (strrpos($seite,'/') > 0)
+	$seite = substr($seite, strrpos($seite,'/'));
+	$start=$HTTP_GET_VARS['start'];
+	$tid=$HTTP_GET_VARS['t'];
+	if ($seite !="/$keyurl-t$tid.html" and $seite != "/$keyurl-t$tid-s$start.html") {
+		header("HTTP/1.1 301 Moved Permanently");
+	if (intval($start) > 0)
+		header("Location: $keyurl-t$tid-s$start.html");
+	else
+		header("Location: $keyurl-t$tid.html");
+	}
+} 
+
+else if ($vforum) {
+	$keyurl=$page_title;
+	$search = array( '�', '�', '�', '�', '�', '�', '�', '�', '�', ' ', ".", "'", '#', '&', '/','�','+','�','�','$','%','?','!',':',';','[',']',',');
+	$replace = array( 'oe', 'ae', 'ue', 'oe', 'ae', 'a', 'e', 'e', 'ue', '-', "", "", '', '-und-', '-','ss','','euro','','','','','','','','','','');
+	$keyurl=str_replace($search, $replace, "$keyurl");
+	$keyurl = strtolower($keyurl);
+	$seite = $_SERVER['REQUEST_URI'];
+	if (strrpos($seite,'/') > 0)
+	$seite = substr($seite, strrpos($seite,'/'));
+	$start=$HTTP_GET_VARS['start'];
+	$tid=$HTTP_GET_VARS['f'];
+	if ($seite !="/$keyurl-f$tid.html" and $seite != "/$keyurl-f$tid-s$start.html") {
+		header("HTTP/1.1 301 Moved Permanently");
+	if (intval($start) > 0)
+		header("Location: $keyurl-f$tid-s$start.html");
+	else
+		header("Location: $keyurl-f$tid.html");
+	}
+}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+				if ( $row['user_allow_viewonline'] )
+				{
+					$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'>' . $row['username'] . '</a>';
+					$logged_visible_online++;
+				}
+				else
+				{
+					$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'><i>' . $row['username'] . '</i></a>';
+					$logged_hidden_online++;
+				}
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+				if ( $row['user_allow_viewonline'] ) {
+					if ( $userdata['session_logged_in'] ) {
+						$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'>' . $row['username'] . '</a>';
+						$logged_visible_online++;
+					} else {
+						$user_online_link = "<span $style_color>" . $row['username'] . "</span>";
+						$logged_visible_online++;
+					}
+				} else {
+					if ( $userdata['session_logged_in'] ) {
+						$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'><i>' . $row['username'] . '</i></a>';
+						$logged_hidden_online++;
+					} else {
+						$user_online_link = '<i>' . $row['username'] . '</i>';
+						$logged_visible_online++;
+					}
+				}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	'U_INDEX' => append_sid('index.'.$phpEx),
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+	'U_INDEX' => append_sid('./'),
+
+
+#
+#-----[ OPEN ]-----------------------------------
+#
+
+includes/sessions.php
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+function append_sid($url, $non_html_amp = false)
+{
+	global $SID;
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+function append_sid($url, $non_html_amp = false)
+{
+	$url_search = array( '�', '�', '�', '�', '�', '�', '�', '�', '�', ' ', ".", "'", '#', '&', '/','�','+','�','�','$','%','?','!',':',';','[',']',',');
+	$url_replace = array( 'oe', 'ae', 'ue', 'oe', 'ae', 'a', 'e', 'e', 'ue', '-', "", "", '', '-und-', '-','ss','','euro','','','','','','','','','','');
+	global $SID,$HTTP_SERVER_VARS,$db,$board_config;
+	
+	if( strstr($url,'viewtopic.php') && !strstr($url,'viewtopic.php?replace') )
+	{
+		if(ereg("#",$url)) {
+			$pos=strpos($url, "#");
+			$url_temp=substr($url,0,$pos);
+			$zusatz=substr($url,$pos,strlen($url));
+			$url=$url_temp;
+		}
+		
+		//
+		// Post
+		//
+		if( preg_match('#viewtopic.php\?p=#', $url) ) {
+			$prg=str_replace("viewtopic.php?","",$url);
+			parse_str($prg, $prg_output);
+			$sql = "SELECT *
+			FROM " . POSTS_TABLE . "
+			WHERE post_id = '".$prg_output['p']."'";
+			if ($result = $db->sql_query($sql))
+			{
+				$row = $db->sql_fetchrow($result);
+				$prg_output['t'] = $row['topic_id'];
+				$sql = "SELECT *
+				FROM " . TOPICS_TABLE . "
+				WHERE topic_id = '".$prg_output['t']."'";
+				if ($result = $db->sql_query($sql))
+				{
+					$row = $db->sql_fetchrow($result);
+					$url1= urlencode(strtolower(str_replace($url_search, $url_replace, $row['topic_title'])));
+				}
+				$sql = "SELECT *
+				FROM " . POSTS_TABLE . "
+				WHERE post_id < '".$prg_output['p']."'
+				AND topic_id = '".$prg_output['t']."'";
+				if ($result = $db->sql_query($sql))
+				{
+					$c = $db->sql_numrows($result)+1;
+					if ($board_config['posts_per_page'] < $c)
+					$prg_output['start'] = floor(($c-1) / $board_config['posts_per_page']) * $board_config['posts_per_page'];
+				}
+				if (isset($prg_output['start']))
+					$url = preg_replace('#viewtopic.php\?p='.$prg_output['p'].'#','-t'.$prg_output['t'].'-s'.$prg_output['start'].'.html',$url);
+				else
+					$url = preg_replace('#viewtopic.php\?p='.$prg_output['p'].'#','-t'.$prg_output['t'].'.html',$url);
+				unset($prg_output['p']);
+			}
+			$url="$url1$url";
+		}
+	}
+	
+	//
+	// Topic
+	//
+	if ( preg_match('#viewtopic.php\?t=#', $url) ) {
+		$prg=str_replace("viewtopic.php?","",$url);
+		parse_str($prg, $prg_output);
+		$highlight = preg_match( '#highlight#', $url) || preg_match( '#vote#', $url) || preg_match( '#newest#', $url);
+		if (!$highlight) {
+			$sql = "SELECT topic_title
+			FROM " . TOPICS_TABLE . "
+			WHERE topic_id = '".$prg_output['t']."'";
+			if ( !($result = $db->sql_query($sql)) ) {
+			message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+			}
+			if ( $row = $db->sql_fetchrow($result) ) {
+				$start= preg_match('#start=0#', $url);
+				$postdays = preg_match( '#postdays=0#', $url);
+				if ($start) {
+				$url = str_replace( 'viewtopic.php', '', $url );
+				$url = str_replace( 'start=0', '', $url );
+				}
+				if ($postdays) {
+					$url = str_replace( 'viewtopic.php', '', $url );
+					$url = str_replace( 'postdays=0', '', $url );
+				} else {
+					$url = str_replace( 'viewtopic.php', '', $url );
+				}
+				$url1 = strtr($url,array("?t="=>"-t","&"=>"","amp;"=>"","asc"=>"","start="=>"-s","postdays="=>"-p","postorder="=>""));
+				$url = urlencode(strtolower(str_replace($url_search, $url_replace, $row['topic_title'])));
+				$url .= $url1. ".html";
+			}
+		}
+	}
+	
+	//
+	// Forum
+	//
+	if( strstr ($url, 'viewforum.php?f=') ) {
+		$prg=str_replace("viewforum.php?","",$url);
+		parse_str($prg, $prg_output);
+		$sql = "SELECT forum_name
+		FROM " . FORUMS_TABLE . "
+		WHERE forum_id = '".$prg_output['f']."'";
+		if ( !($result = $db->sql_query($sql)) ) {
+		message_die(GENERAL_ERROR, 'Could not obtain forums information', '', __LINE__, __FILE__, $sql);
+		}
+		if ( $row = $db->sql_fetchrow($result) ){
+			$start= preg_match('#start=0#', $url);
+			$topicdays = preg_match( '#topicdays=0#', $url);
+			$mark = preg_match( '#mark#', $url);
+			
+			if ($start) {
+			$url = str_replace( 'start=0', '', $url );
+			}
+			if ($topicdays) {
+				$url = str_replace( 'topicdays=0', '', $url );
+			}
+			if (!($mark)) {
+				$url = str_replace( 'viewforum.php', '', $url );
+				$url1 .= strtr($url,array("?f="=>"-f","amp;"=>"","&"=>"","topicdays="=>"-p","start="=>"-s"));
+				$url = urlencode(strtolower(str_replace($url_search, $url_replace, $row['forum_name'])));
+				$url .= $url1. ".html";
+			}
+		}
+	}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+	$SID = 'sid=' . $session_id;
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+	if ( $userdata['session_user_id'] != ANONYMOUS || $userdata['session_page'] == -4 || $userdata['session_page'] == -2 ){
+		$SID = 'sid=' . $session_id;
+	} else {
+		$SID = '';
+	}
+
+#
+#-----[ FIND ]-----------------------------------
+#
+
+				$SID = ($sessionmethod == SESSION_METHOD_GET || defined('IN_ADMIN')) ? 'sid=' . $session_id : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------
+#
+
+				if ( $userdata['session_user_id'] != ANONYMOUS || $userdata['session_page'] == -4 || $userdata['session_page'] == -2 ){
+					$SID = ($sessionmethod == SESSION_METHOD_GET || defined('IN_ADMIN')) ? 'sid=' . $session_id : '';
+				} else {
+					$SID = '';
+				}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]-----------------------------------
+# EoM
