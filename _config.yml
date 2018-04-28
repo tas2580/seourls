@@ -1,0 +1,8 @@
+title: Phpbb-3-1-seo-urls
+description: Rewrite URLs of a phpBB Forum
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-minimal
+
+gems:
+  - jekyll-mentions
