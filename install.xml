@@ -1,0 +1,748 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.prosilver.en.xsl"?>
+
+
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.2.5.xsd">
+<header>
+<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+
+<title lang="en"><![CDATA[SEO phpBB]]></title>
+
+<description lang="en"><![CDATA[Search engine friendly URLs with forum/topic - title in the URL]]></description>
+
+<description lang="de"><![CDATA[Suchmaschinenoptimierung durch statische Links mit dem Foren/Themen-Titel in der URL.
+Keine Session IDs mehr für Gäste]]></description>
+
+<author-notes lang="en"><![CDATA[For this Mod your Server need to support Apache module mod_rewrite]]></author-notes>
+
+<author-notes lang="de"><![CDATA[Damit man diesen Mod verwenden kann muss der Webserver mod_rewrite unterstützen.]]></author-notes>
+
+<author-group>
+
+<author>
+<realname><![CDATA[Tobias Schäfer]]></realname>
+<email><![CDATA[tobi@phpbb-seo.de]]></email>
+<username><![CDATA[tas2580]]></username>
+<homepage><![CDATA[http://www.phpbb-seo.de]]></homepage>
+
+</author>
+
+</author-group>
+<mod-version>1.0.7</mod-version>
+<installation>
+<level>intermediate</level>
+
+<time>1200</time>
+<target-version>3.0.8</target-version>
+</installation>
+<history>
+
+<entry>
+<date>2009-11-18</date>
+<rev-version>1.0.5</rev-version>
+<changelog lang="en">
+
+</changelog>
+</entry>
+
+<entry>
+<date>2008-1-16</date>
+<rev-version>1.0.0</rev-version>
+<changelog lang="en">
+
+<change><![CDATA[First relase]]></change>
+
+</changelog>
+</entry>
+
+<entry>
+<date>2008-2-13</date>
+<rev-version>1.0.1</rev-version>
+
+<changelog lang="en">
+
+<change><![CDATA[Fixed some bugs]]></change>
+
+</changelog>
+</entry>
+
+<entry>
+<date>2008-4-29</date>
+<rev-version>1.0.2</rev-version>
+<changelog lang="en">
+
+<change><![CDATA[Fixed some bugs]]></change>
+
+<change><![CDATA[Update to phpBB 3.0.1]]></change>
+
+</changelog>
+</entry>
+
+<entry>
+<date>2008-9-14</date>
+<rev-version>1.0.3</rev-version>
+<changelog lang="en">
+
+<change><![CDATA[Fixed some bugs]]></change>
+
+<change><![CDATA[Update to phpBB 3.0.2]]></change>
+
+</changelog>
+</entry>
+
+<entry>
+<date>2008-12-3</date>
+<rev-version>1.0.4</rev-version>
+<changelog lang="en">
+
+<change><![CDATA[Fixed some bugs]]></change>
+
+<change><![CDATA[Update to phpBB 3.0.3]]></change>
+
+<change><![CDATA[Better URL checking]]></change>
+
+</changelog>
+</entry>
+
+<entry>
+<date>2010-12-28</date>
+<rev-version>1.0.7</rev-version>
+<changelog lang="en">
+
+<change><![CDATA[Update for phpBB 3.0.8]]></change>
+
+<change><![CDATA[Fixed XSS hole]]></change>
+
+</changelog>
+</entry>
+
+</history>
+
+
+
+
+
+
+</header>
+<action-group>
+
+<copy>
+
+<file from="root/robots.txt" to="robots.txt" />
+
+<file from="root/includes/functions_seophpbb.php" to="includes/functions_seophpbb.php" />
+
+</copy>
+
+<sql><![CDATA[ALTER TABLE `phpbb_topics` ADD INDEX `topic_last_post_id` ( `topic_last_post_id` )]]></sql>
+
+<open src=".htaccess">
+
+<edit>
+
+<find><![CDATA[<Files "config.php">]]></find>
+
+<action type="before-add"><![CDATA[RewriteEngine on
+#if your forum is in http://www.domain.tld/forum/ replace with RewriteBase /forum
+RewriteBase /
+
+RewriteRule ^(.*)-f([0-9]*)/(.*)-t([0-9]*)-s([0-9]*).html viewtopic.php?f=$2&t=$4&start=$5&%{QUERY_STRING} [L]
+RewriteRule ^(.*)-f([0-9]*)/(.*)-t([0-9]*).html viewtopic.php?f=$2&t=$4&%{QUERY_STRING} [L]
+RewriteRule global/(.*)-t([0-9]*).html ./viewtopic.php?f=1&t=$2&%{QUERY_STRING} [L]
+RewriteRule ^(.*)-f([0-9]*)/index-s([0-9]*).html viewforum.php?f=$2&start=$3&%{QUERY_STRING} [L]
+RewriteRule ^(.*)-f([0-9]*)/ viewforum.php?f=$2&%{QUERY_STRING} [L]
+RewriteRule ^(.*)-f([0-9]*) viewforum.php?f=$2&%{QUERY_STRING} [L]]]></action>
+
+<comment lang="en"><![CDATA[if your forum is in http://www.domain.tld/forum/ replace the RewriteBase with /forum/]]></comment>
+
+<comment lang="de"><![CDATA[Wenn dein Forum unter http://www.domain.tld/forum/ ersetze RewriteBase mit /forum/]]></comment>
+
+</edit>
+
+</open>
+
+<open src="common.php">
+
+<edit>
+
+<find><![CDATA[require($phpbb_root_path . 'includes/auth.' . $phpEx);]]></find>
+
+<action type="after-add"><![CDATA[// Begin SEO phpBB
+require($phpbb_root_path . 'includes/functions_seophpbb.' . $phpEx);
+// End SEO phpBB]]></action>
+
+</edit>
+
+</open>
+
+<open src="index.php">
+
+<edit>
+
+<find><![CDATA[$legend[] = '<a' . $colour_text . ' href="' . append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=group&amp;g=' . $row['group_id']) . '">' . $group_name . '</a>';]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+		if ($user->data['user_id'] != ANONYMOUS && !$user->data['is_bot'] )
+		{
+			 $legend[] = '<a' . $colour_text . ' href="' . append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=group&amp;g=' . $row['group_id']) . '">' . $group_name . '</a>';
+		}
+		else
+		{
+			$legend[] = '<span' . $colour_text . '>' . $group_name . '</span>';
+		}
+		//$legend[] = '<a' . $colour_text . ' href="' . append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=group&amp;g=' . $row['group_id']) . '">' . $group_name . '</a>';
+		// END SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['NEWEST_USER'	=> sprintf($user->lang['NEWEST_USER'], get_username_string('full', $config['newest_user_id'], $config['newest_username'], $config['newest_user_colour'])),]]></find>
+
+<action type="after-add"><![CDATA['U_CANONICAL'		=> generate_board_url() . '/',]]></action>
+
+</edit>
+
+</open>
+
+<open src="viewforum.php">
+
+<edit>
+
+<find><![CDATA[page_header($user->lang['VIEW_FORUM'] . ' - ' . $forum_data['forum_name'], true, $forum_id);]]></find>
+
+<action type="replace-with"><![CDATA[//Begin SEO phpBB
+//page_header($user->lang['VIEW_FORUM'] . ' - ' . $forum_data['forum_name'], true, $forum_id);
+page_header($forum_data['forum_name'], true, $forum_id);
+// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_FORUM'			=> append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . (($start == 0) ? '' : "&amp;start=$start")),]]></find>
+
+<action type="replace-with"><![CDATA[//Begin SEO phpBB
+	'U_VIEW_FORUM' => generate_seourl_forum($forum_id, $forum_data['forum_name'], $start),
+	//'U_VIEW_FORUM'      => append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id&amp;$u_sort_param&amp;start=$start"),
+	// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['PAGINATION'	=> generate_pagination(append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '')), $topics_count, $config['topics_per_page'], $start),]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+	'PAGINATION'   => (strlen($u_sort_param)) ? generate_pagination(append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id&amp;$u_sort_param"), $topics_count, $config['topics_per_page'], $start) : generate_seo_pagination(title_to_url($forum_data['forum_name']) . '-f' . $forum_id .'/index', $topics_count, $config['topics_per_page'], $start),
+	//'PAGINATION'	=> generate_pagination(append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '')), $topics_count, $config['topics_per_page'], $start),
+	// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$view_topic_url_params = 'f=' . $topic_forum_id . '&amp;t=' . $topic_id;
+		$view_topic_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params);]]></find>
+
+<action type="after-add"><![CDATA[// Begin SEO phpBB
+		if ($forum_data['forum_type'] == FORUM_CAT)
+		{
+			$view_topic_url1 = append_sid(generate_seourl_topic($topic_id, $row['topic_title']));
+		}
+		else
+		{
+			$view_topic_url1 = append_sid(generate_seourl_topic($topic_id, $row['topic_title'], $row['forum_id'], $forum_data['forum_name']), false);
+		}
+		// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['PAGINATION'		=> topic_generate_pagination($replies, $view_topic_url),]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+			'PAGINATION'      => topic_generate_seo_pagination($replies, $view_topic_url1),
+			//'PAGINATION'      => topic_generate_pagination($replies, $view_topic_url),
+			// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_LAST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params . '&amp;p=' . $row['topic_last_post_id']) . '#p' . $row['topic_last_post_id'],]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+			//'U_LAST_POST'			=> 'U_LAST_POST'			=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", $view_topic_url_params . '&amp;p=' . $row['topic_last_post_id']) . '#p' . $row['topic_last_post_id'],
+			'U_LAST_POST'			=> generate_seo_lastpost($replies, $view_topic_url1 ) . '#p' . $row['topic_last_post_id'],
+			// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_TOPIC'			=> $view_topic_url,]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+			'U_VIEW_TOPIC'         => $view_topic_url1,
+			//'U_VIEW_TOPIC'         => $view_topic_url,
+			// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[// Make sure $start is set to the last page if it exceeds the amount
+if ($start < 0 || $start > $topics_count)
+{
+	$start = ($start < 0) ? 0 : floor(($topics_count - 1) / $config['topics_per_page']) * $config['topics_per_page'];
+}]]></find>
+
+<action type="after-add"><![CDATA[//BEGIN SEO phpBB
+check_forum_url($forum_data);
+// END SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['S_FORUM_ACTION'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . (($start == 0) ? '' : "&amp;start=$start")),]]></find>
+
+<action type="replace-with"><![CDATA[// BEGIN SEO phpBB
+	//'S_FORUM_ACTION'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id&amp;start=$start"),
+	'S_FORUM_ACTION' 		=> generate_seourl_forum($forum_id, $forum_data['forum_name'], $start),
+	//END SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_FORUM'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '') . (($start == 0) ? '' : "&amp;start=$start")),]]></find>
+
+<action type="replace-with"><![CDATA[// BEGIN SEO phpBB
+	//'U_VIEW_FORUM'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '') . (($start == 0) ? '' : "&amp;start=$start")),
+	'U_VIEW_FORUM'			=> strlen($u_sort_param) ? append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id&amp;$u_sort_param&amp;start=$start") : generate_seourl_forum($forum_id, $forum_data['forum_name'], $start),
+	//END SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['MODERATORS'	=> (!empty($moderators[$forum_id])) ? implode(', ', $moderators[$forum_id]) : '',]]></find>
+
+<action type="after-add"><![CDATA['U_CANONICAL'				=> generate_board_url() .'/' . title_to_url(censor_text($forum_data['forum_name'])) . '-f' . $forum_id . '/' . (($start) ? 'index-s' . $start . '.html' : ''),]]></action>
+
+</edit>
+
+</open>
+
+<open src="viewtopic.php">
+
+<edit>
+
+<find><![CDATA[$pagination = generate_pagination(append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '') . (($highlight_match) ? "&amp;hilit=$highlight" : '')), $total_posts, $config['posts_per_page'], $start);]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+$pagination = (strlen($u_sort_param) || $highlight_match) ? generate_pagination(append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '') . (($highlight_match) ? "&amp;hilit=$highlight" : '')), $total_posts, $config['posts_per_page'], $start) : generate_seo_pagination(title_to_url($topic_data['forum_name']) . '-f' . $forum_id . '/' . title_to_url($topic_data['topic_title']) . '-t' . $topic_id, $total_posts, $config['posts_per_page'], $start);
+$url_addon = ( $start > 0 ) ? '-s' . $start : '';
+//$pagination = generate_pagination(append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '') . (($highlight_match) ? "&amp;hilit=$highlight" : '')), $total_posts, $config['posts_per_page'], $start);
+// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_TOPIC'				=> "{$server_path}viewtopic.$phpEx?f=$forum_id&amp;t=$topic_id",
+	'U_FORUM'				=> $server_path,
+	'U_VIEW_TOPIC' 			=> $viewtopic_url,
+	'U_VIEW_FORUM' 			=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id),]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+	'U_CANONICAL'				=> generate_board_url() . '/' . title_to_url($topic_data['forum_name']) . '-f' . $forum_id . '/'. title_to_url($topic_data['topic_title']) .'-t' . $topic_id . (empty($start) ? '' : '-s' . $start) . '.html',
+	'U_TOPIC'				=> generate_seourl_topic($topic_id, $topic_data['topic_title'], $forum_id, $topic_data['forum_name']),
+	'U_FORUM'				=> $server_path,
+	'U_VIEW_TOPIC'			=> generate_seourl_topic($topic_id, $topic_data['topic_title'], $forum_id, $topic_data['forum_name'], true),
+	'U_VIEW_FORUM'			=> generate_seourl_forum($forum_id, $topic_data['forum_name']),
+	//'U_TOPIC'				=> "{$server_path}viewtopic.$phpEx?f=$forum_id&amp;t=$topic_id",
+	//'U_FORUM'				=> $server_path,
+	//'U_VIEW_TOPIC'		=> viewtopic_url,
+	//'U_VIEW_FORUM'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_id),
+	// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_MINI_POST'		=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'p=' . $row['post_id']) . (($topic_data['topic_type'] == POST_GLOBAL) ? '&amp;f=' . $forum_id : '') . '#p' . $row['post_id'],]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+		'U_MINI_POST'      => generate_seourl_topic($topic_id, $topic_data['topic_title'], $forum_id, $topic_data['forum_name'], $start) . '#p' . $row['post_id'],
+		//'U_MINI_POST'      => append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'p=' . $row['post_id']) . (($topic_data['topic_type'] == POST_GLOBAL) ? '&amp;f=' . $forum_id : '') . '#p' . $row['post_id'],
+		//End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[if (!sizeof($post_list))
+{
+	if ($sort_days)
+	{
+		trigger_error('NO_POSTS_TIME_FRAME');
+	}
+	else
+	{
+		trigger_error('NO_TOPIC');
+	}
+}]]></find>
+
+<action type="after-add"><![CDATA[//BEGIN SEO phpBB
+check_topic_url($topic_data);
+//END SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[page_header($user->lang['VIEW_TOPIC'] . ' - ' . $topic_data['topic_title'], true, $forum_id);]]></find>
+
+<action type="replace-with"><![CDATA[//Begin SEO phpBB
+page_header($topic_data['topic_title'], true, $forum_id);
+//page_header($user->lang['VIEW_TOPIC'] . ' - ' . $topic_data['topic_title'], true, $forum_id);
+// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_UNREAD_POST'	=> '#unread',]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+			//'U_VIEW_UNREAD_POST'	=> '#unread',
+			'U_VIEW_UNREAD_POST'	=> generate_seourl_topic($topic_id, $topic_data['topic_title'], $forum_id, $topic_data['forum_name']) . '#unread',
+			//End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_UNREAD_POST'	=> '#unread',]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+			//'U_VIEW_UNREAD_POST'	=> '#unread',
+			'U_VIEW_UNREAD_POST'	=> generate_seourl_topic($topic_id, $topic_data['topic_title'], $forum_id, $topic_data['forum_name']) . '#unread',
+			//End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['S_TOPIC_ACTION' 		=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id" . (($start == 0) ? '' : "&amp;start=$start")),]]></find>
+
+<action type="replace-with"><![CDATA[// BEGIN SEO phpBB
+	//'S_TOPIC_ACTION' 		=> append_sid("{$phpbb_root_path}viewtopic.$phpEx", "f=$forum_id&amp;t=$topic_id&amp;start=$start"),
+	'S_TOPIC_ACTION'		=> generate_seourl_topic($topic_id, $topic_data['topic_title'], $forum_id, $topic_data['forum_name'], $start),
+	//END SEO phpBB]]></action>
+
+</edit>
+
+</open>
+
+<open src="includes/functions.php">
+
+<edit>
+
+<find><![CDATA[// Assign sid if session id is not specified
+	if ($session_id === false)
+	{
+		$session_id = $_SID;
+	}]]></find>
+
+<action type="after-add"><![CDATA[// Begin SEO phpBB
+	global $user;
+	if ($user->data['user_id'] == ANONYMOUS OR $user->data['is_bot'] )
+	{
+	   $session_id = false;
+	}
+	// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$template->assign_vars(array(
+		'DEBUG_OUTPUT'			=> (defined('DEBUG')) ? $debug_output : '',]]></find>
+
+<action type="before-add"><![CDATA[$user->lang['TRANSLATION_INFO'] = 'Optimized by <a href="http://www.phpbb-seo.de/">SEO phpBB</a><br />' . $user->lang['TRANSLATION_INFO'];]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_INDEX'				=> append_sid("{$phpbb_root_path}index.$phpEx"),]]></find>
+
+<action type="replace-with"><![CDATA[// BEGIN SEO phpBB
+		//'U_INDEX'				=> append_sid("{$phpbb_root_path}index.$phpEx"),
+		'U_INDEX'				=> append_sid("{$phpbb_root_path}"),
+		'U_SELF_URL'			=> $_SERVER['SCRIPT_NAME'] . (empty($_SERVER['QUERY_STRING']) ? '' : '?' . str_replace('&', '&amp;', $_SERVER['QUERY_STRING'])),
+		'U_BASE_URL'			=> $config['server_protocol'] . $config['server_name'] . $_SERVER['SCRIPT_NAME'],
+		// END SEO phpBB]]></action>
+
+</edit>
+
+</open>
+
+<open src="includes/functions_content.php">
+
+<edit>
+
+<find><![CDATA[if ($user_id && $user_id != ANONYMOUS && ($user->data['user_id'] == ANONYMOUS || $auth->acl_get('u_viewprofile')))]]></find>
+
+<action type="replace-with"><![CDATA[// BEGIN SEO phpBB
+			if ($user_id && $user_id != ANONYMOUS && ($auth->acl_get('u_viewprofile')))
+			//if ($user_id && $user_id != ANONYMOUS && ($user->data['user_id'] == ANONYMOUS || $auth->acl_get('u_viewprofile')))
+			//END SEO phpBB]]></action>
+
+</edit>
+
+</open>
+
+<open src="includes/functions_display.php">
+
+<edit>
+
+<find><![CDATA['U_VIEWFORUM'			=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']))]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+				//'U_VIEWFORUM'         => append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']))
+				'U_VIEWFORUM'         => generate_seourl_forum($row['forum_id'], $row['forum_name']))
+				// END SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['link'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $subforum_id),]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+						'link'      => generate_seourl_forum($subforum_id, $subforum_row['name']),
+						//'link'      => append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $subforum_id),
+						// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$sql_array['SELECT'] .= ', fa.user_id';
+	}]]></find>
+
+<action type="after-add"><![CDATA[// Begin SEO phpBB
+	$sql_array['LEFT_JOIN'][] = array(
+	  'FROM'   => array(TOPICS_TABLE => 't'),
+	  'ON'   => "f.forum_last_post_id = t.topic_last_post_id"
+	);
+	$sql_array['SELECT'] .= ', t.topic_title, t.topic_id, t.topic_replies';
+	// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$forum_rows[$parent_id]['forum_id_last_post'] = $forum_id;]]></find>
+
+<action type="after-add"><![CDATA[// Begin SEO phpBB
+				$forum_rows[$parent_id]['last_forum'] = $row['forum_name'];
+				$forum_rows[$parent_id]['last_topic_title'] = $row['topic_title'];
+				$forum_rows[$parent_id]['last_topic_id'] = $row['topic_id'];
+				// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$last_post_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . $row['forum_id_last_post'] . '&amp;p=' . $row['forum_last_post_id']) . '#p' . $row['forum_last_post_id'];]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+			$last_forum = isset($row['last_forum']) ? $row['last_forum'] : $row['forum_name'];
+			if(isset($row['last_topic_id']))
+			{
+				$last_post_url = "{$phpbb_root_path}" . generate_seourl_topic($row['last_topic_id'], $row['last_topic_title'], $row['forum_id_last_post'], $last_forum);
+			}
+			else
+			{
+				$last_post_url = "{$phpbb_root_path}" . generate_seourl_topic($row['topic_id'], $row['topic_title'], $row['forum_id_last_post'], $last_forum);
+			}
+			$last_post_url = generate_seo_lastpost($row['topic_replies'], $last_post_url ) . '#p' . $row['forum_last_post_id'];
+			//$last_post_url = append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . $row['forum_id_last_post'] . '&amp;p=' . $row['forum_last_post_id']) . '#p' . $row['forum_last_post_id'];
+			// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$u_viewforum = append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']);]]></find>
+
+<action type="replace-with"><![CDATA[//Begin SEO phpBB
+			$u_viewforum = generate_seourl_forum($row['forum_id'], $row['forum_name']);
+			//$u_viewforum = append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']);
+			// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[$u_viewforum = append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']);]]></find>
+
+<action type="replace-with"><![CDATA[//Begin SEO phpBB
+				$u_viewforum = generate_seourl_forum($row['forum_id'], $row['forum_name']);
+				//$u_viewforum = append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $row['forum_id']);
+				// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_FORUM'	=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $parent_forum_id))]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+				'U_VIEW_FORUM'   => generate_seourl_forum($parent_forum_id, $parent_name))
+				//'U_VIEW_FORUM'   => append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $parent_forum_id))
+				// End SEO phpBB]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA['U_VIEW_FORUM'	=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_data['forum_id']))]]></find>
+
+<action type="replace-with"><![CDATA[// Begin SEO phpBB
+		'U_VIEW_FORUM'	=> generate_seourl_forum($forum_data['forum_id'], $forum_data['forum_name']))
+		//'U_VIEW_FORUM'	=> append_sid("{$phpbb_root_path}viewforum.$phpEx", 'f=' . $forum_data['forum_id']))
+		// End SEO phpBB]]></action>
+
+</edit>
+
+</open>
+
+<open src="styles/prosilver/template/posting_topic_review.html">
+
+<edit>
+
+<find><![CDATA[<a href="#review" onclick=]]></find>
+
+<action type="replace-with"><![CDATA[<a href="{U_SELF_URL}#review" onclick=]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<a href="#postingbox"]]></find>
+
+<action type="replace-with"><![CDATA[<a href="{U_SELF_URL}#postingbox"]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<a href="#pr{topic_review_row.POST_ID}">]]></find>
+
+<action type="replace-with"><![CDATA[<a href="{U_SELF_URL}#pr{topic_review_row.POST_ID}">]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<p><a href="#report" class="top2">{L_BACK_TO_TOP}</a></p>]]></find>
+
+<action type="replace-with"><![CDATA[<p><a href="{U_SELF_URL}#report" class="top2">{L_BACK_TO_TOP}</a></p>]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<p><a href="#postingbox" class="top2">{L_BACK_TO_TOP}</a></p>]]></find>
+
+<action type="replace-with"><![CDATA[<p><a href="{U_SELF_URL}#postingbox" class="top2">{L_BACK_TO_TOP}</a></p>]]></action>
+
+</edit>
+
+</open>
+
+<open src="styles/prosilver/template/overall_header.html">
+
+<edit>
+
+<find><![CDATA[<meta name="description" content="" />]]></find>
+
+<action type="after-add"><![CDATA[<base href="{U_BASE_URL}" />
+<!-- IF U_CANONICAL --><link rel="canonical" href="{U_CANONICAL}" /><!-- ENDIF -->]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<title>{SITENAME} &bull; <!-- IF S_IN_MCP -->{L_MCP} &bull; <!-- ELSEIF S_IN_UCP -->{L_UCP} &bull; <!-- ENDIF -->{PAGE_TITLE}</title>]]></find>
+
+<action type="replace-with"><![CDATA[<title>{PAGE_TITLE} &bull; <!-- IF S_IN_MCP -->{L_MCP} &bull; <!-- ELSEIF S_IN_UCP -->{L_UCP} &bull; <!-- ENDIF -->{SITENAME}</title>]]></action>
+
+</edit>
+
+</open>
+
+<open src="styles/prosilver/template/forum_fn.js">
+
+<edit>
+
+<find><![CDATA[document.location.href = base_url.replace(/&amp;/g, '&') + '&start=' + ((page - 1) * per_page);]]></find>
+
+<action type="replace-with"><![CDATA[//document.location.href = base_url.replace(/&amp;/g, '&') + '&start=' + ((page - 1) * per_page);
+		document.location.href = base_url.replace(/&amp;/g, '&') + '-s' + ((page - 1) * per_page + '.html');]]></action>
+
+</edit>
+
+</open>
+
+<open src="styles/prosilver/template/viewtopic_body.html">
+
+<edit>
+
+<find><![CDATA[<a href="#p{postrow.POST_ID}">{postrow.POST_SUBJECT}</a>]]></find>
+
+<action type="replace-with"><![CDATA[<a href="{U_VIEW_TOPIC}#p{postrow.POST_ID}">{postrow.POST_SUBJECT}</a>]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<div class="back2top"><a href="#wrap" class="top" title="{L_BACK_TO_TOP}">{L_BACK_TO_TOP}</a></div>]]></find>
+
+<action type="replace-with"><![CDATA[<div class="back2top"><a href="{U_VIEW_TOPIC}#wrap" class="top" title="{L_BACK_TO_TOP}">{L_BACK_TO_TOP}</a></div>]]></action>
+
+</edit>
+
+</open>
+
+<open src="styles/prosilver/template/faq_body.html">
+
+<edit>
+
+<find><![CDATA[<dd><a href="#f{faq_block.S_ROW_COUNT}r{faq_block.faq_row.S_ROW_COUNT}">{faq_block.faq_row.FAQ_QUESTION}</a></dd>]]></find>
+
+<action type="replace-with"><![CDATA[<dd><a href="{U_SELF_URL}#f{faq_block.S_ROW_COUNT}r{faq_block.faq_row.S_ROW_COUNT}">{faq_block.faq_row.FAQ_QUESTION}</a></dd>]]></action>
+
+</edit>
+
+<edit>
+
+<find><![CDATA[<dd><a href="#faqlinks" class="top2">{L_BACK_TO_TOP}</a></dd>]]></find>
+
+<action type="replace-with"><![CDATA[<dd><a href="{U_SELF_URL}#faqlinks" class="top2">{L_BACK_TO_TOP}</a></dd>]]></action>
+
+</edit>
+
+</open>
+
+</action-group>
+
+</mod>
