@@ -1,6 +1,6 @@
 # phpBB SEO URLs
 
-This is a hack for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb">phpBB</a> 2.0.x to use this hack.
+This is a hack for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb/tree/2.0.x">phpBB 2.0.x</a> to use this hack.
 
 ## DESCRIPTION
 Changes the URLs of forums and topics too more SEO friendly URLs with the title of the forums and topics in it. This
