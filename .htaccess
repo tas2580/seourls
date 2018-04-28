@@ -1,0 +1,41 @@
+# SEO phpBB
+# .htaccess keyword in URL Version
+#
+
+RewriteEngine On
+
+# Forum
+RewriteCond %{REQUEST_FILENAME} /(.*)-f([0-9]*).html
+RewriteRule (.*) /viewforum.php?f=%2 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-f([0-9]*)-s([0-9]*).html
+RewriteRule (.*) /viewforum.php?f=%2&start=%3 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-f([0-9]*)-p([0-9]*)-s([0-9]*).html
+RewriteRule (.*) /viewforum.php?f=%2&topicdays=%3&start=%4 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-f([0-9]*)-p([0-9]*).html
+RewriteRule (.*) /viewforum.php?f=%2&topicdays=%3 [L]
+
+
+#topic
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*).html
+RewriteRule (.*) /viewtopic.php?t=%2 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*)-s([0-9]*).html
+RewriteRule (.*) /viewtopic.php?t=%2&start=%3 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*)desc.html
+RewriteRule (.*) /viewtopic.php?t=%2&&postorder=desc [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*)-p([0-9]*)-s([0-9]*).html
+RewriteRule (.*) /viewtopic.php?t=%2&postdays=%3&postorder=asc&start=%4 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*)-p([0-9]*)desc-s([0-9]*).html
+RewriteRule (.*) /viewtopic.php?t=%2&postdays=%3&postorder=desc&start=%4 [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*)-p([0-9]*)desc.html
+RewriteRule (.*) /viewtopic.php?t=%2&postdays=%3&postorder=desc [L]
+
+RewriteCond %{REQUEST_FILENAME} /(.*)-t([0-9]*)-p([0-9]*).html
+RewriteRule (.*) /viewtopic.php?t=%2&postdays=%3&postorder=asc&start=0 [L]
