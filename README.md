@@ -11,7 +11,7 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 
 ## SUPPORT
 You can get support for this extension on <a href="https://www.phpbb.com/community/viewtopic.php?f=456&t=2288486">phpbb.com</a>
-or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=233380">phpbb.de</a>. For more informations look at
+or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=88&t=150123">phpbb.de</a>. For more informations look at
 <a href="https://tas2580.net/downloads/phpbb-seo-url/">my Website</a>.
 
 ## LICENSE
