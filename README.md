@@ -22,6 +22,15 @@ You can get support for this extension on <a href="https://www.phpbb.com/communi
 or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=233380">phpbb.de</a>. For more informations look at
 <a href="https://tas2580.net/downloads/phpbb-seo-url/">my Website</a>.
 
+## Old phpBB Versions
+### phpBB 2.0.x
+<a href="https://github.com/tas2580/seourls/archive/phpBB-2.0.x.zip">Download ZIP</a> | 
+<a href="https://github.com/tas2580/seourls/tree/phpBB-2.0.x">View Branch</a>
+
+### phpBB 3.0.x
+<a href="https://github.com/tas2580/seourls/archive/phpBB-3.0.x.zip">Download ZIP</a> | 
+<a href="https://github.com/tas2580/seourls/tree/phpBB-3.0.x">View Branch</a>
+
 ## LICENSE
 <a href="http://opensource.org/licenses/gpl-2.0.php">GNU General Public License v2</a>
 
