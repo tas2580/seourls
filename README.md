@@ -14,7 +14,7 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 
 
 ## INSTALLATION
-To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>.
+To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>. Make changes on your <a href="https://github.com/tas2580/seourls/wiki/Webserver-configuration">Webserver configuration</a>.
 After that go to the Admin panel of your forum and navigate in to Customise -> Extension Management -> Extensions. Search this extension in the list of extensions and click on Enable.
 
 ### URL Rewriting
@@ -26,11 +26,11 @@ or in german on <a href="https://www.phpbb.de/community/viewtopic.php?f=149&t=23
 <a href="https://tas2580.net/downloads/phpbb-seo-url/">my Website</a>.
 
 ## Old phpBB Versions
-### phpBB 2.0.x
+**phpBB 2.0.x**<br>
 <a href="https://github.com/tas2580/seourls/archive/phpBB-2.0.x.zip">Download ZIP</a> | 
 <a href="https://github.com/tas2580/seourls/tree/phpBB-2.0.x">View Branch</a>
 
-### phpBB 3.0.x
+**phpBB 3.0.x**<br>
 <a href="https://github.com/tas2580/seourls/archive/phpBB-3.0.x.zip">Download ZIP</a> | 
 <a href="https://github.com/tas2580/seourls/tree/phpBB-3.0.x">View Branch</a>
 
