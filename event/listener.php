@@ -98,11 +98,6 @@ class listener implements EventSubscriberInterface
 	 */
 	public function append_sid($event)
 	{
-		if ($this->in_viewtopic && preg_match('#./../viewtopic.' . $this->php_ext  . '#', $event['url']))
-		{
-			$url = '../viewtopic.' . $this->php_ext ;
-			$event['url'] = $url;
-		}
 		if (isset($event['params']['redirect']))
 		{
 			$params = $event['params'];
