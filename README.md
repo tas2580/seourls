@@ -12,6 +12,8 @@ extension is held as simple as possible, it contains no ACP, you can just instal
 * `/viewforum.php?f=1 becomes /forum-title-f1/`
 * `/viewtopic.php?f=1&t=2 becomes /forum-title-f1/topic-title-t2.html`
 
+### XML Sitemap
+If you search for a SEO XML sitemap, look at <a href="https://github.com/tas2580/sitemap">this Extension</a>
 
 ## INSTALLATION
 To install this extension download it from here and upload the files in your forum under <b>/ext/tas2580/seourls</b>. Make changes on your <a href="https://github.com/tas2580/seourls/wiki/Webserver-configuration">Webserver configuration</a>.
