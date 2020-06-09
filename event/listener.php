@@ -210,10 +210,10 @@ class listener implements EventSubscriberInterface
 
 		foreach ($navlinks_parents as $id => $data)
 		{
-			$navlinks_parents[$id]['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($data['FORUM_ID'] , $data['FORUM_NAME']));
+			$navlinks_parents[$id]['U_BREADCRUMB'] = append_sid($this->base->generate_forum_link($data['FORUM_ID'] , $data['BREADCRUMB_NAME']));
 		}
 
-		$navlinks['U_VIEW_FORUM'] = append_sid($this->base->generate_forum_link($forum_data['forum_id'], $forum_data['forum_name']));
+		$navlinks['U_BREADCRUMB'] = append_sid($this->base->generate_forum_link($forum_data['forum_id'], $forum_data['forum_name']));
 		$event['navlinks'] = $navlinks;
 		$event['navlinks_parents'] = $navlinks_parents;
 	}
