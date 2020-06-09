@@ -2,23 +2,23 @@ services:
     tas2580.seourls.base:
         class: tas2580\seourls\event\base
         arguments:
-            - @auth
-            - @config
-            - %core.root_path%
+            - '@auth'
+            - '@config'
+            - '%core.root_path%'
     tas2580.seourls.listener:
         class: tas2580\seourls\event\listener
         arguments:
-            - @tas2580.seourls.base
-            - @template
-            - @request
-            - @path_helper
-            - %core.root_path%
-            - %core.php_ext%
+            - '@tas2580.seourls.base'
+            - '@template'
+            - '@request'
+            - '@path_helper'
+            - '%core.root_path%'
+            - '%core.php_ext%'
         tags:
             - { name: event.listener }
     tas2580.seourls.extensions:
         class: tas2580\seourls\event\extensions
         arguments:
-            - @tas2580.seourls.base
+            - '@tas2580.seourls.base'
         tags:
             - { name: event.listener }
