@@ -241,12 +241,14 @@ class listener implements EventSubscriberInterface
 	public function memberlist_view_profile($event)
 	{
 		$data = $event['member'];
-		$this->template->assign_vars(array(
-			'U_ACTIVE_FORUM' => $this->base->generate_forum_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], 0, true),
-			'U_ACTIVE_TOPIC' => $this->base->generate_topic_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], $data['active_t_row']['topic_id'], $data['active_t_row']['topic_title'], 0, true),
-		));
+		if (isset($data['active_f_row']['forum_id']) && isset($data['active_f_row']['forum_name']) && isset($data['active_t_row']['topic_id']) && isset($data['active_t_row']['topic_title']))
+		{
+			$this->template->assign_vars(array(
+				'U_ACTIVE_FORUM' => $this->base->generate_forum_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], 0, true),
+				'U_ACTIVE_TOPIC' => $this->base->generate_topic_link($data['active_f_row']['forum_id'], $data['active_f_row']['forum_name'], $data['active_t_row']['topic_id'], $data['active_t_row']['topic_title'], 0, true),
+			));
+		}
 	}
-
 	/**
 	 * Rewrite pagination links
 	 *
@@ -436,7 +438,10 @@ class listener implements EventSubscriberInterface
 		$data = $event['topic_data'];
 		$viewtopic_url = $this->base->generate_topic_link($data['forum_id'], $data['forum_name'], $data['topic_id'], $data['topic_title'], $start) . '#p' . $event['row']['post_id'];
 		$row['U_MINI_POST'] = append_sid($viewtopic_url);
-		$row['U_APPROVE_ACTION'] = append_sid(generate_board_url() . '/' . "mcp.{$this->php_ext}", "i=queue&amp;p={$data['post_id']}&amp;f={$data['forum_id']}&amp;redirect=" . urlencode(str_replace('&amp;', '&', $viewtopic_url)));
+		if (isset($data['post_id']))
+		{
+    		$row['U_APPROVE_ACTION'] = append_sid(generate_board_url() . '/' . "mcp.{$this->php_ext}", "i=queue&amp;p={$data['post_id']}&amp;f={$data['forum_id']}&amp;redirect=" . urlencode(str_replace('&amp;', '&', $viewtopic_url)));
+		} 
 		$event['post_row'] = $row;
 	}
 
