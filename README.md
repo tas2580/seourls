@@ -1,13 +1,13 @@
 # phpBB SEO URLs
 
-This is an extension for the phpBB forums software. You need an instalation of <a href="https://github.com/phpbb/phpbb">phpBB</a> 3.1.x or 3.2.x to use this extension.
+This is an extension for the phpBB forum management software. You will need <a href="https://github.com/phpbb/phpbb">phpBB</a> 3.1.x or 3.2.x to use this extension.
 
 [![Download](https://raw.githubusercontent.com/tas2580/privacyprotection/master/.github/button_download.png)](https://tas2580.net/downloads/phpbb-seo-url/) [![Donate](https://raw.githubusercontent.com/tas2580/privacyprotection/master/.github/button_donate.png)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S8PXGAJZP9GWN)
 
 
 ## DESCRIPTION
-Changes the URLs of forums and topics too more SEO friendly URLs with the title of the forums and topics in it. This
-extension is held as simple as possible, it contains no ACP, you can just install it and use the SEO friendly URLs.
+Changes the URL of forums and topics to SEO friendly URLs with the title of the forum and topic in it. This
+extension is very simple, it contains no ACP, you just install it and enjoy SEO friendly URLs.
 
 * `/viewforum.php?f=1 becomes /forum-title-f1/`
 * `/viewtopic.php?f=1&t=2 becomes /forum-title-f1/topic-title-t2.html`
